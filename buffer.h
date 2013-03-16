@@ -1,0 +1,83 @@
+/**
+ * buffer.h
+ * GLB
+ * March 01, 2013
+ * Brandon Surmanski
+ */
+
+#ifndef _GLB_BUFFER_H
+#define _GLB_BUFFER_H
+
+#include <GL/glfw.h>
+#include <GL/gl.h>
+
+struct GLBVertexLayout;
+
+struct GLBVBufferData
+{
+    int count; 
+    struct GLBVertexLayout *layout;
+};
+
+struct GLBIBufferData
+{
+    int count;  ///< number of vertex indices
+    int offset; ///< offset from the first
+    int type;   ///< type of vertex indices (must be unsigned byte, short or int)
+};
+
+// TODO: hide definition of structures
+typedef struct GLBBuffer
+{
+    int refcount;
+    GLuint globj;
+    size_t nmemb;
+    size_t sz;
+    struct GLBIBufferData idata;
+    struct GLBVBufferData vdata;
+} GLBBuffer;
+
+enum GLBBufferUsage
+{
+    GLB_STREAM_DRAW = GL_STREAM_DRAW,
+    GLB_STREAM_READ = GL_STREAM_READ,
+    GLB_STREAM_COPY = GL_STREAM_COPY,
+    GLB_STATIC_DRAW = GL_STATIC_DRAW,
+    GLB_STATIC_READ = GL_STATIC_READ,
+    GLB_STATIC_COPY = GL_STATIC_COPY,
+    GLB_DYNAMIC_DRAW = GL_DYNAMIC_DRAW,
+    GLB_DYNAMIC_READ = GL_DYNAMIC_READ,
+    GLB_DYNAMIC_COPY = GL_DYNAMIC_COPY,
+};
+
+GLBBuffer* glbCreateBuffer   (size_t nmemb, size_t sz, 
+                              const void *const ptr, int usage, int *errcode_ret);
+GLBBuffer* glbCreateIndexBuffer  (size_t nmemb, size_t sz, const void * const ptr, 
+                                  int type, int usage, int *errcode_ret);
+GLBBuffer* glbCreateVertexBuffer (size_t nmemb, size_t sz, const void *const ptr, int ndesc, 
+                                  struct GLBVertexLayout *desc, 
+                                  int usage, int *errcode_ret);
+void       glbDeleteBuffer   (GLBBuffer *buffer);
+void       glbRetainBuffer   (GLBBuffer *buffer);
+void       glbReleaseBuffer  (GLBBuffer *buffer);
+int        glbWriteBuffer    (GLBBuffer *buffer, size_t offset, size_t sz, void *ptr);
+int        glbReadBuffer     (GLBBuffer *buffer, size_t offset, size_t sz, void *ptr);
+int        glbFillBuffer     (GLBBuffer *buffer, 
+                               const void *pattern,
+                               size_t pattern_size,
+                               size_t offset,
+                               size_t size);
+int        glbCopyBuffer     (GLBBuffer *src, 
+                               GLBBuffer *dst,
+                               size_t src_offset,
+                               size_t dst_offset,
+                               size_t size);
+void*      glbMapBuffer      (GLBBuffer *buffer, int access);
+int        glbUnmapBuffer    (GLBBuffer *buffer);
+
+int        glbVertexBufferFormat (GLBBuffer *buffer, int ndesc, struct GLBVertexLayout *desc);
+int        glbIndexBufferFormat  (GLBBuffer *buffer, int offset, int count, int type);
+
+int        glbBufferOption       (GLBBuffer *buffer);
+
+#endif
