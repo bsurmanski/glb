@@ -8,7 +8,6 @@
 #ifndef _GLB_BUFFER_H
 #define _GLB_BUFFER_H
 
-#include <GL/glfw.h>
 #include <GL/gl.h>
 
 struct GLBVertexLayout;
