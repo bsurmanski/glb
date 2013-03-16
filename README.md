@@ -28,3 +28,6 @@ In OpenGL, uniform variable locations do not have a consistent number scheme. Th
 
 ##Conclusion:
 due to the requirement of backwards compatibility that OpenGL maintains, there is a lot of legacy and badly designed functions. Yes, there was the deprecation that came with OpenGL 3.0, but that left all remaining functions as is. GLB tries to reimagine OpenGL as a cleaner interface, and hopefully it's useful to you.
+
+###License
+This project is licensed under the MIT Open Source license, which means that you can do pretty much whatever you want with this source code. view the LICENSE file for full details
