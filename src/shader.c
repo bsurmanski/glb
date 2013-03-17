@@ -36,25 +36,7 @@ struct GLBShaderIdentList
     struct GLBShaderIdentList *next;
 };
 
-void glbDeleteShader (GLBShader *shader)
-{
-    glDeleteShader(shader->globj);
-}
-
-void glbRetainShader (GLBShader *shader)
-{
-    shader->refcount++;
-}
-
-void glbReleaseShader (GLBShader *shader)
-{
-    shader->refcount--;
-    if(shader->refcount <= 0)
-    {
-        glbDeleteShader(shader);
-    }
-}
-
+/*{{{ Metadata Parsing*/
 /**
  * finds the last occurance of any character in accept, searching from the end of the string
  * at str[max]. if the character is not found, return NULL
@@ -105,6 +87,20 @@ static const char *rstrchr(const char *str, int max, char c)
         max--;
     }
     return NULL;
+}
+
+/**
+ * strndup is not ANSI, need to reimpliment...
+ */
+static char *strndup(const char *s, size_t n)
+{
+    int end = 0;
+    while(s[end] && end < n) end++; //find null byte or end of string
+    if(!end) return NULL;
+    char *ret = malloc(end+1);
+    memcpy(ret, s, end);
+    ret[end] = '\0';
+    return ret;
 }
 
 /*
@@ -185,7 +181,7 @@ void glbShaderMetadata(GLBShader *shader, int max, const char *str)
         max--;
         str++;
     }
-}
+}/*}}}*/
 
 static char *glbFileToString(const char *filenm, int *out_sz, int *out_err)
 {
@@ -351,4 +347,23 @@ ERROR:
 #endif
 
     return NULL;
+}
+
+void glbDeleteShader (GLBShader *shader)
+{
+    glDeleteShader(shader->globj);
+}
+
+void glbRetainShader (GLBShader *shader)
+{
+    shader->refcount++;
+}
+
+void glbReleaseShader (GLBShader *shader)
+{
+    shader->refcount--;
+    if(shader->refcount <= 0)
+    {
+        glbDeleteShader(shader);
+    }
 }

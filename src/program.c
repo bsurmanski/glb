@@ -167,19 +167,25 @@ static int glbProgramClean(GLBProgram *program)
             program->noutputs++;
         }
 
-        s_ident = vshader->uniforms; //TODO: get uniforms from vshader AND fshader
+        // get uniforms from ALL shaders
         p_ident = program->uniforms;
-        while(*s_ident)
+        for(i = 0; i < GLB_NPROGRAM_SHADERS; i++)
         {
-            *p_ident = malloc(sizeof(struct GLBProgramIdent));
-            (*p_ident)->type = (*s_ident)->type;
-            (*p_ident)->location = glGetUniformLocation(program->globj, (*s_ident)->name);
-            (*p_ident)->isInt = glbTypeIsInt((*p_ident)->type);
-            (*p_ident)->bind = NULL;
-            (*p_ident)->size = 1; //TODO, parse
-            p_ident++;
-            s_ident++;
-            program->nuniforms++;
+            GLBShader *cshader = program->shaders[i];
+            if(!cshader) continue;
+            s_ident = cshader->uniforms;
+            while(*s_ident)
+            {
+                *p_ident = malloc(sizeof(struct GLBProgramIdent));
+                (*p_ident)->type = (*s_ident)->type;
+                (*p_ident)->location = glGetUniformLocation(program->globj, (*s_ident)->name);
+                (*p_ident)->isInt = glbTypeIsInt((*p_ident)->type);
+                (*p_ident)->bind = NULL;
+                (*p_ident)->size = 1; //TODO, parse
+                p_ident++;
+                s_ident++;
+                program->nuniforms++;
+            }
         }
 
     //XXX debug/*{{{*/
@@ -241,6 +247,11 @@ GLBProgram *glbCreateProgram (int *errcode_ret)
     for(i = 0; i < GLB_MAX_OUTPUTS; i++)
     {
         program->outputs[i] = NULL;
+    }
+
+    for(i = 0; i < GLB_MAX_UNIFORMS; i++)
+    {
+        program->uniforms[i] = NULL;
     }
 
     return program;
