@@ -47,9 +47,17 @@ glbProgramUniform(GLBProgram *program, int shader, int i, int sz, void *val);
 ###Binding Textures: 
 One thing that acts strangely in OpenGL is the binding of
 textures to programs. In vanilla OpenGL, a texture must be bound to a texture
-unit and a uniform must be updated correspondingly. In GLB, this step is merged
-and instead one call to glbProgramTexture handles both managing texture units,
-and uniform variables. 
+unit and a uniform must be updated correspondingly. This is contradictory to 
+binding shaders, or other uniforms. Its just inconsistant. In GLB, texture binding 
+is a single step that makes sense. Instead of multiple steps, one call to 
+glbProgramTexture handles both managing texture units, and the uniform variables. 
+
+###Sane Defaults
+We've all done it. We think we've gotten everything working, but the textures
+aren't showing up! Yeah, we forgot to set the TEXTURE_MIN_FILTER and TEXTURE_MAG_FILTER
+parameters again with glTexParameteri. 
+GLB uses sane defaults to allow you to get working as quickly as possible,
+And if something unexpected happens, GLB will return an error so you know.
 
 ###Necessity of retrieving uniform locations: 
 In OpenGL, uniform variable
@@ -186,7 +194,7 @@ And finally the C code using GLB:
     {
         glbProgramUniform(program, GLB_VERTEX_SHADER, 0, sizeof(int), &FALSE);
         glbProgramUniform(program, GLB_VERTEX_SHADER, 1, sizeof(float[16]), t_matrix);
-        glbProgramNamedTexture(program, GLB_FRAGMENT_SHADER, 0, color);
+        glbProgramTexture(program, GLB_FRAGMENT_SHADER, 0, color);
         glbProgramDrawIndexed(program, vbuffer, ibuffer);
     }
  }
@@ -194,9 +202,16 @@ And finally the C code using GLB:
 
 ##TODO:
 The following is currently unimplemented and needs to be finished:
-texture functionality,
-program options,
-uniform buffers
+* sampler objects
+* program options
+* uniform buffers (non-buffer uniforms should work, though)
+* texture unit allocation (currently only one texture may be used)
+* non-RGBA textures
+* TGA color maps
+* more robust GLSL parsing. (currently working, needs improvement)
+* array uniform variables
+* handling of large amounts of inputs, outputs and uniforms
+* allow for row-major matrices (currently forced column major)
 
 ##Conclusion: 
 Due to the requirement of backwards compatibility that OpenGL

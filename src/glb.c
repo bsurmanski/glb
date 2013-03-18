@@ -332,6 +332,13 @@ bool glbTypeIsMatrix(int type)
             type == GLB_MAT3x4 || type == GLB_MAT4x2 || type == GLB_MAT4x3);
 }
 
+bool glbTypeIsOpaque(int type)
+{
+    return (type == GLB_SAMPLER_1D || type == GLB_SAMPLER_2D || type == GLB_SAMPLER_3D ||
+            type == GLB_SAMPLER_CUBE || type == GLB_SAMPLER_1D_SHADOW || 
+            type == GLB_SAMPLER_2D_SHADOW || type == GLB_SAMPLER_CUBE_SHADOW);
+}
+
 //specific vector types
 bool glbTypeIsUIVec(int type)
 {

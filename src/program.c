@@ -394,7 +394,10 @@ void glbProgramDetachShaderStage (GLBProgram *program, enum GLBShaderStage stage
 static int glbProgramUniformByLocation(GLBProgram *program, int loc, int size, int type, 
                                        int transposed, int sz, void *val)
 {
-    int n = sz / glbTypeSizeof(type);
+    int errcode = 0;
+    int n=1;
+    if(glbTypeSizeof(type)) //TODO: workaround to avoid FPEXCEPT for Opaque types without size
+    n = sz / glbTypeSizeof(type);
 
     if(n > size)
     {
@@ -436,7 +439,7 @@ static int glbProgramUniformByLocation(GLBProgram *program, int loc, int size, i
             default:
                 goto ERROR;
         }
-    } else
+    } else if (glbTypeIsScalar(type))
     {
         switch(glbTypeLength(type))
         {
@@ -507,14 +510,33 @@ static int glbProgramUniformByLocation(GLBProgram *program, int loc, int size, i
             default:
                 goto ERROR;
         }
+    } else if(glbTypeIsOpaque(type))
+    {
+        GLB_ASSERT(sz == sizeof(GLBTexture), GLB_INVALID_ARGUMENT, ERROR);
+        switch(type)
+        {
+            case GLB_SAMPLER_1D:
+            case GLB_SAMPLER_2D:
+                //TODO: bind textures to shader
+                glActiveTexture(GL_TEXTURE0); //TODO: texture unit allocation
+                glBindTexture(((GLBTexture*)val)->target, ((GLBTexture*)val)->globj);
+                glUniform1i(loc, 0); //TODO: texture unit alloc
+                break;
+            default:
+                return GLB_UNIMPLEMENTED;
+        }
+    } else // unknown type
+    {
+        errcode = GLB_INVALID_ARGUMENT;
+        goto ERROR;
     }
     glUseProgram(0);
-    return 0;
+    return errcode;
 
 ERROR:
     glUseProgram(0);
 
-    return GLB_INVALID_ARGUMENT;
+    return errcode;
 }
 
 int glbProgramUniform (GLBProgram *program, int shader, int i, int sz, void *val)
@@ -532,15 +554,20 @@ int glbProgramUniform (GLBProgram *program, int shader, int i, int sz, void *val
         }
     }
 
-    glbProgramUniformByLocation(program, program->uniforms[i]->location,
+    if(program->uniforms[i]->location < 0)
+    {
+        return GLB_INVALID_ARGUMENT;
+    }
+
+    return glbProgramUniformByLocation(program, program->uniforms[i]->location,
                                 program->uniforms[i]->size, 
                                 program->uniforms[i]->type, true, sz, val);
-    return 0; //TODO errors
 }
 
 int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *texture)
 {
-    return GLB_UNIMPLEMENTED;
+    //TODO: treat i as index of texture instead of uniform??
+    return glbProgramUniform(program, shader, i, sizeof(GLBTexture), texture);
 }
 
 int glbProgramNamedUniform (GLBProgram *program, char *name, int sz, void *val)

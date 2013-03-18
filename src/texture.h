@@ -53,7 +53,7 @@ GLBTexture*  glbCreateTexture  (enum GLBAccess flags,
                                 int *errcode_ret);
 
 GLBTexture*  glbCreateTextureWithTGA (enum GLBAccess flags, 
-                                      const char filenm,
+                                      const char *filenm,
                                       int *errcode_ret);
 
 int          glbTextureGenerateMipmap(GLBTexture *texture);

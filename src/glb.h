@@ -48,6 +48,7 @@ bool glbTypeIsUnsigned(int type);
 bool glbTypeIsScalar(int type);
 bool glbTypeIsVector(int type);
 bool glbTypeIsMatrix(int type);
+bool glbTypeIsOpaque(int type);
 
 //specific vector types
 bool glbTypeIsUIVec(int type);

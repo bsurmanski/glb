@@ -6,7 +6,9 @@
  */
 
 #include "glb.h"
+#include "tga.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,6 +32,19 @@ static struct GLBTextureFormat FORMAT[] =
     {4, GL_R32UI,               GL_RED_INTEGER,     GL_UNSIGNED_INT},   // INT
 };
 
+static int glbTextureDimensions(GLBTexture *texture)
+{
+    if(texture->z > 1)
+    {
+        return 3;
+    }
+    if(texture->y > 1)
+    {
+        return 2;
+    }
+    return 1; //image has to be at least 1D
+}
+
 GLBTexture* glbCreateTexture (enum GLBAccess flags, 
                               enum GLBImageFormat format,
                               int x,
@@ -42,10 +57,84 @@ GLBTexture* glbCreateTexture (enum GLBAccess flags,
 
     GLBTexture *texture = malloc(sizeof(GLBTexture));
     GLB_ASSERT(texture, GLB_OUT_OF_MEMORY,  ERROR); 
+    if(x < 1) x = 1;
+    if(y < 1) y = 1;
+    if(z < 1) z = 1;
+    glGenTextures(1, &texture->globj);
     texture->refcount = 1;
-    texture->globj = 0;
+    texture->x = x;
+    texture->y = y;
+    texture->z = z;
+    texture->format = format;
+    texture->size = x * y * z * FORMAT[format].depth; //TODO: assert format is correct
+
+    switch(glbTextureDimensions(texture))
+    {
+    
+        case 3:
+            texture->target = GL_TEXTURE_3D;
+            glBindTexture(GL_TEXTURE_3D, texture->globj);
+            glTexImage3D(GL_TEXTURE_3D, 0, FORMAT[format].internalFormat, 
+                         x, y, z, 0, FORMAT[format].format, FORMAT[format].type, ptr);
+            break;
+        case 2:
+            texture->target = GL_TEXTURE_2D;
+            glBindTexture(GL_TEXTURE_2D, texture->globj);
+            glTexImage2D(GL_TEXTURE_2D, 0, FORMAT[format].internalFormat, 
+                         x, y, 0, FORMAT[format].format, FORMAT[format].type, ptr);
+            break;
+        case 1:
+            texture->target = GL_TEXTURE_1D;
+            glBindTexture(GL_TEXTURE_1D, texture->globj);
+            glTexImage1D(GL_TEXTURE_1D, 0, FORMAT[format].internalFormat, 
+                         x, 0, FORMAT[format].format, FORMAT[format].type, ptr);
+            break;
+        default: //error, should never reach here
+            errcode = GLB_UNIMPLEMENTED; 
+            goto UNKNOWN_ERROR;
+    }
+
+    glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     return texture;
 
+UNKNOWN_ERROR:
+    glDeleteTextures(1, &texture->globj);
+    free(texture);
+ERROR:
+    if(errcode_ret)
+    {
+        *errcode_ret = errcode;
+    }
+    return NULL;
+}
+
+#include <assert.h>
+GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags, 
+                                     const char *filenm,
+                                     int *errcode_ret)
+{
+    int errcode = 0;
+    FILE *file = fopen(filenm, "rb");
+    GLB_ASSERT(file, GLB_FILE_NOT_FOUND, ERROR);
+
+    struct glbTGA_header header;
+    errcode = glbTGA_header_read(file, &header);
+    GLB_ASSERT(!errcode, GLB_READ_ERROR, ERROR_READ);
+
+    void *buf = malloc(glbTGA_image_sz(&header));
+    errcode = glbTGA_image_read(file, &header, buf);
+    assert(!errcode);
+    GLBTexture *texture = glbCreateTexture(0, GLB_RGBA, //TODO: non-rgba formats
+                          header.img.w, header.img.h, 1, buf, &errcode);
+    free(buf);
+    GLB_ASSERT(!errcode, errcode, ERROR_READ);
+    fclose(file);
+    return texture;
+    
+ERROR_READ:
+    fclose(file);
 ERROR:
     if(errcode_ret)
     {
