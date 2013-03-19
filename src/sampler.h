@@ -3,24 +3,14 @@
  * GLB
  * March 02, 2013
  * Brandon Surmanski
+ *
+ * definition of the GLBSampler object interface
  */
 
 #ifndef _GLB_SAMPLER_H
 #define _GLB_SAMPLER_H
 
-typedef struct GLBSampler
-{
-    int refcount;
-    int minfilter;
-    int magfilter;
-    float minlod;
-    float maxlod;
-    int wrap_s;
-    int wrap_t;
-    int wrap_r;
-    int compare_mode;
-    int compare_func;
-} GLBSampler;
+#include "glb_types.h"
 
 enum GLBSamplerFilter
 {
@@ -71,6 +61,5 @@ void glbSetSamplerWrap   (GLBSampler *sampler,
 void glbSetSamplerCompare(GLBSampler *sampler, 
                           enum GLBSamplerCompareMode m, 
                           enum GLBSamplerCompareFunc f);
-//typedef struct 
 
 #endif

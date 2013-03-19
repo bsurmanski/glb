@@ -3,27 +3,21 @@
  * GLB
  * March 01, 2013
  * Brandon Surmanski
+ *
+ * definition of the GLBProgram object interface
  */
 
 #ifndef _GLB_PROGRAM_H
 #define _GLB_PROGRAM_H
 
+#include "glb_types.h"
+
 #define GLB_NPROGRAM_SHADERS 5
-
-struct GLBShader;
-struct GLBTexture;
-struct GLBVertexLayout;
-struct GLBShaderIdent;
-
-struct GLBProgramOptions;
-struct GLBProgramIdent;
 
 #define GLB_MAX_TEXTURES    16
 #define GLB_MAX_UNIFORMS    16
 #define GLB_MAX_INPUTS      16
 #define GLB_MAX_OUTPUTS     16
-
-typedef struct GLBProgram GLBProgram;
 
 // Initialization/Deinitialization
 
@@ -33,6 +27,7 @@ void        glbRetainProgram              (GLBProgram *program);
 void        glbReleaseProgram             (GLBProgram *program);
 
 // Options
+//TODO: allow non-triangles, wireframe, other options
 
 int         glbProgramOption              (GLBProgram *program, int option, int value);
 
@@ -47,8 +42,8 @@ int         glbProgramAttachNewShaderSource (GLBProgram *program,
                                          enum GLBShaderStage stage); 
 
 void        glbProgramAttachShader        (GLBProgram *program, GLBShader *shader);
-void        glbProgramDetachShader        (GLBProgram *program, GLBShader *shader);
-void        glbProgramDetachShaderStage   (GLBProgram *program, enum GLBShaderStage stage);
+int         glbProgramDetachShader        (GLBProgram *program, GLBShader *shader);
+int         glbProgramDetachShaderStage   (GLBProgram *program, enum GLBShaderStage stage);
 
 // Bindables
 
@@ -69,6 +64,7 @@ int         glbProgramLayout              (GLBProgram *program,
 
 int         glbProgramInputLayout         (GLBProgram *program, int n, char **inputs);
 int         glbProgramOutputLayout        (GLBProgram *program, int n, char **outputs);
+int         glbProgramOutputs             (GLBProgram *program, int n, GLBTexture **outputs);
 
 //Draw
 
@@ -87,7 +83,5 @@ int         glbProgramDrawIndexedRange    (GLBProgram *program,
                                            GLBBuffer *array, 
                                            GLBBuffer *index,
                                            int offset, int count);
-
-//TODO: allow non-triangles, wireframe, other options
 
 #endif

@@ -5,7 +5,8 @@
  * Brandon Surmanski
  */
 
-#include "glb.h"
+#include "glb_private.h"
+
 #include "tga.h"
 
 #include <stdio.h>
@@ -66,6 +67,7 @@ GLBTexture* glbCreateTexture (enum GLBAccess flags,
     texture->y = y;
     texture->z = z;
     texture->format = format;
+    texture->sampler = NULL;
     texture->size = x * y * z * FORMAT[format].depth; //TODO: assert format is correct
 
     switch(glbTextureDimensions(texture))
@@ -110,7 +112,6 @@ ERROR:
     return NULL;
 }
 
-#include <assert.h>
 GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags, 
                                      const char *filenm,
                                      int *errcode_ret)
@@ -125,7 +126,7 @@ GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
 
     void *buf = malloc(glbTGA_image_sz(&header));
     errcode = glbTGA_image_read(file, &header, buf);
-    assert(!errcode);
+    GLB_ASSERT(!errcode, GLB_UNIMPLEMENTED, ERROR_IMG);
     GLBTexture *texture = glbCreateTexture(0, GLB_RGBA, //TODO: non-rgba formats
                           header.img.w, header.img.h, 1, buf, &errcode);
     free(buf);
@@ -133,6 +134,8 @@ GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
     fclose(file);
     return texture;
     
+ERROR_IMG:
+    free(buf);
 ERROR_READ:
     fclose(file);
 ERROR:
@@ -171,6 +174,18 @@ int glbReleaseTexture(GLBTexture *texture)
     return 0;
 }
 
+int glbTextureGenerateMipmap(GLBTexture *texture)
+{
+    glBindTexture(texture->target, texture->globj);
+    glGenerateMipmap(texture->target);
+    if(!texture->sampler)
+    {
+        glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    }
+    return 0;
+}
+
 int glbTextureSampler (GLBTexture *texture, struct GLBSampler *sampler)
 {
     if(!texture) return GLB_INVALID_ARGUMENT; 
@@ -179,27 +194,60 @@ int glbTextureSampler (GLBTexture *texture, struct GLBSampler *sampler)
     {
         glbReleaseSampler(texture->sampler);
     }
-        glbRetainSampler(sampler);
-        texture->sampler = sampler;
 
-        glBindTexture(texture->target, texture->globj);
-        glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, sampler->minfilter);
-        glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, sampler->magfilter);
-        glTexParameteri(texture->target, GL_TEXTURE_WRAP_S, sampler->wrap_s);
-        glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, sampler->wrap_t);
-        glTexParameteri(texture->target, GL_TEXTURE_WRAP_R, sampler->wrap_r);
-        glTexParameterf(texture->target, GL_TEXTURE_MIN_LOD, sampler->minlod);
-        glTexParameterf(texture->target, GL_TEXTURE_MAX_LOD, sampler->maxlod);
-        //TODO: other params
-        glBindTexture(texture->target, 0);
+    glbRetainSampler(sampler);
+    texture->sampler = sampler;
+
+    glBindTexture(texture->target, texture->globj);
+    glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, sampler->minfilter);
+    glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, sampler->magfilter);
+    glTexParameteri(texture->target, GL_TEXTURE_WRAP_S, sampler->wrap_s);
+    glTexParameteri(texture->target, GL_TEXTURE_WRAP_T, sampler->wrap_t);
+    glTexParameteri(texture->target, GL_TEXTURE_WRAP_R, sampler->wrap_r);
+    glTexParameterf(texture->target, GL_TEXTURE_MIN_LOD, sampler->minlod);
+    glTexParameterf(texture->target, GL_TEXTURE_MAX_LOD, sampler->maxlod);
+    //TODO: other params
+    glBindTexture(texture->target, 0);
 
     return 0;
 }
 
-int glbFillTexture (GLBTexture *texture, void *fill_color,
-                    int *origin, int *region)
+int glbFillTexture (GLBTexture *texture, int level,
+                    int *origin, int *region, void *fill_color)
 {
-    return GLB_UNIMPLEMENTED;
+    int errcode = 0;
+    int x = 1;
+    int y = 1;
+    int z = 1;
+    size_t bufsz = texture->x * texture->y * texture->z * FORMAT[texture->format].depth;
+    uint32_t *buf = malloc(bufsz);
+    switch(glbTextureDimensions(texture))
+    {
+        case 3:
+            z = region[2];
+        case 2:
+            y = region[1];
+        case 1:
+            x = region[0];
+    }
+    int i,j,k;
+    for(k = 0; k < z; k++)
+    {
+        for(j = 0; j < y; j++)
+        {
+            for(i = 0; i < x; i++)
+            {
+                memcpy(&buf[((k + origin[2]) * texture->z) * 
+                            ((j + origin[1]) * texture->y) * 
+                            ((i + origin[0]) * texture->x)], 
+                        fill_color, 
+                        sizeof(uint32_t)); //TODO: non-rgba
+            }
+        }
+    }
+    errcode = glbWriteTexture(texture, level, origin, region, bufsz, buf);
+    free(buf);
+    return errcode;
 }
 
 //TODO: is size required?

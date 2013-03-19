@@ -5,7 +5,7 @@
  * Brandon Surmanski
  */
 
-#include "glb.h"
+#include "glb_private.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,18 +13,6 @@
 #include <ctype.h>
 
 #define MIN(a,b) ((a) > (b) ? (b) : (a))
-
-/**
- * single identifier in a shader program. An identifier represents some sort of
- * variable that is visible externally to OpenGL. This can be an input, output,
- * uniform, sampler, etc.
- */
-struct GLBShaderIdent
-{
-    int type; ///< GL type
-    int size; ///< size of array
-    char *name; ///< name string
-};
 
 /**
  * linked list of shader identifiers.

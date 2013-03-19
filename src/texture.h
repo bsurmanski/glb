@@ -3,14 +3,14 @@
  * GLB
  * March 01, 2013
  * Brandon Surmanski
+ *
+ * definition of the GLBTexture object interface
  */
 
 #ifndef _GLB_TEXTURE_H
 #define _GLB_TEXTURE_H
 
-#include "glb.h"
-
-struct GLBSampler;
+#include "glb_types.h"
 
 enum GLBAccess
 {
@@ -18,19 +18,6 @@ enum GLBAccess
     GLB_WRITE_ONLY = GL_WRITE_ONLY,
     GLB_READ_WRITE = GL_READ_WRITE,
 };
-
-typedef struct GLBTexture
-{
-    int refcount;
-    GLuint globj;
-    uint32_t x;
-    uint32_t y;
-    uint32_t z;
-    uint32_t format;
-    uint32_t size;
-    GLenum target;
-    struct GLBSampler *sampler;
-} GLBTexture;
 
 enum GLBImageFormat
 {
@@ -56,14 +43,14 @@ GLBTexture*  glbCreateTextureWithTGA (enum GLBAccess flags,
                                       const char *filenm,
                                       int *errcode_ret);
 
-int          glbTextureGenerateMipmap(GLBTexture *texture);
 int          glbDeleteTexture  (GLBTexture *texture);
 int          glbRetainTexture  (GLBTexture *texture);
 int          glbReleaseTexture (GLBTexture *texture);
-int          glbTextureSampler (GLBTexture *texture, struct GLBSampler *sampler);
+int          glbTextureGenerateMipmap(GLBTexture *texture);
+int          glbTextureSampler (GLBTexture *texture, GLBSampler *sampler);
 
-int          glbFillTexture    (GLBTexture *texture, void *fill_color, 
-                                int *origin, int *region);
+int          glbFillTexture    (GLBTexture *texture, int level,
+                                int *origin, int *region, void *fill_color);
 
 int          glbWriteTexture   (GLBTexture *texture, 
                                 int level, int *origin, 

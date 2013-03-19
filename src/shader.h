@@ -3,26 +3,16 @@
  * GLB
  * March 01, 2013
  * Brandon Surmanski
+ *
+ * definition of the GLBShader object interface
  */
 
 #ifndef _GLB_SHADER_H
 #define _GLB_SHADER_H
 
-struct GLBShaderIdent;
+#include "glb_types.h"
 
-typedef struct GLBShader
-{
-    int refcount;
-    GLuint globj;
-    int nuniforms;
-    int ninputs;
-    int noutputs;
-    int ntextures;
-    struct GLBShaderIdent *textures;  ///< textures currently bound to the shader
-    struct GLBShaderIdent *uniforms[16];  ///< uniforms currently bound to the shader
-    struct GLBShaderIdent *inputs[16];
-    struct GLBShaderIdent *outputs[16];
-} GLBShader;
+struct GLBShaderIdent;
 
 enum GLBShaderStage
 {
@@ -34,13 +24,13 @@ enum GLBShaderStage
 };
 
 GLBShader* glbCreateShaderWithSourceFile (  const char *filenm,
-                                            enum GLBShaderStage stage, 
-                                            int *errcode_ret);
+                                           enum GLBShaderStage stage, 
+                                           int *errcode_ret);
 
 GLBShader* glbCreateShaderWithSource (  int len,
-                                        const char *mem,
-                                        enum GLBShaderStage stage, 
-                                        int *errcode_ret); 
+                                       const char *mem,
+                                       enum GLBShaderStage stage, 
+                                       int *errcode_ret); 
 
 void        glbDeleteShader       (GLBShader *shader);
 void        glbRetainShader       (GLBShader *shader);

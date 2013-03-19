@@ -3,12 +3,13 @@
  * obj
  * May 29, 2012
  * Brandon Surmanski
+ *
+ * Private TGA loading header used by GLBTexture
  */
 
 #ifndef _glbTGA_H
 #define _glbTGA_H
 
-#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 

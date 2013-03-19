@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -136,7 +137,6 @@ static void *buffer_read(struct buffer_t *b, FILE *fd, int n, void *dst)
  */
 int glbTGA_image_read(FILE *fd, glbTGA_header *h, void *data)
 {
-    errno = 0;
     fseek(fd, h->id_len, SEEK_CUR); //ignore optional ID field
 
     if(!glbTGA_header_is_valid(h)){
@@ -146,7 +146,7 @@ int glbTGA_image_read(FILE *fd, glbTGA_header *h, void *data)
     //unsigned int cm_sz = glbTGA_colormap_sz(h);
     //unsigned int img_sz = glbTGA_image_sz(h);
     if(HAS_CMAP(*h)){
-        assert(false && "TGA Color map not yet supported");
+        //assert(false && "TGA Color map not yet supported");
         return -1; ///< TODO: proper color map for tga
             //cmap = malloc(cm_sz); 
             //read(fd, cmap, cm_sz); 
@@ -180,5 +180,5 @@ int glbTGA_image_read(FILE *fd, glbTGA_header *h, void *data)
             nrepeat--;
         }
     }
-    return errno;
+    return 0;
 }

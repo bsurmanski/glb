@@ -8,19 +8,33 @@ of the OpenGL interface, designed to clean up and modernize the OpenGL API.
 There is no new functionality in GLB, but what it does have is easier to learn
 than OpenGL and is easier to work with. So far the development of GLB has been
 focused on cleaning up the Shader, Program, Texture, and Buffer interfaces.
+All GLB calls end up calling OpenGL code to function, so it should be just as 
+portible as OpenGL itself.
 
 GLB was not created to be a standalone game library, the only new functionality
 above OpenGL is the convenience functions for loading TGAs into textures, and
 for loading a shader object directly from a provided filename. GLB was create to
-    be a cleaner equivalent to OpenGL, that uses OpenGL as a backend.
+be a cleaner equivalent to OpenGL, that uses OpenGL as a backend. 
+
 
 ##Whats so bad about just using OpenGL?  
 ###Inconsistencies: 
 There are many
 inconsistencies in the interface to OpenGL that GLB tries to solve. One example
-is the difference in semantics between glTexImage*D, glTexSubImage*D,
-glGetTexImage, (the non-existance of) glGetTexSubImage and glBufferData,
-glBufferSubData, (the non-existence of) glGetBufferData, glGetBufferSubData.
+is the difference in semantics between the following sets: 
+
+* glTexImage\*D, 
+* glTexSubImage\*D,
+* glGetTexImage, 
+* glGetTexSubImage (does not actually exist) 
+
+and 
+
+* glBufferData,
+* glBufferSubData, 
+* glGetBufferData (does not actually exist)
+* glGetBufferSubData
+
 With the different methods for each texture dimension, and non-matching
 functions for reading, its easy to get confused with vanilla OpenGL. In GLB, all
 textures act the same, regardless of dimensionality, and
@@ -31,12 +45,12 @@ functions for Uniforms...
 ###All those different functions for uniforms: 
 In GLB, binding uniforms happens
 all in one functions: glbProgramUniform, which acts similar to
-glProgramUniform\* except it works in OpenGL before version 4.0.
+glProgramUniform\* except it doesn't depend of OpenGL 4.0.
 
 ```c
 /**
  * program: the program object to set the uniform for
- * shader: an enumerated constant for which shader (eg GLB_VERTEX_SHADER)
+ * shader: an enumerated constant for which shader the uniform object is in(eg GLB_VERTEX_SHADER)
  * i: the order the uniform was defined in the GLSL file
  * sz: the size of the uniform in bytes
  * val: the value to set the uniform to
@@ -55,9 +69,14 @@ glbProgramTexture handles both managing texture units, and the uniform variables
 ###Sane Defaults
 We've all done it. We think we've gotten everything working, but the textures
 aren't showing up! Yeah, we forgot to set the TEXTURE_MIN_FILTER and TEXTURE_MAG_FILTER
-parameters again with glTexParameteri. 
+parameters with glTexParameteri again. 
 GLB uses sane defaults to allow you to get working as quickly as possible,
 And if something unexpected happens, GLB will return an error so you know.
+
+### State Machines
+All that binding and unbind is such a pain, and the fact that OpenGL functions depend 
+on persistant state leads to unexpected behaviour and bugs. GLB trys to be as functional 
+as possible, and the result of each GLB function should only depends on the provided parameters.
 
 ###Necessity of retrieving uniform locations: 
 In OpenGL, uniform variable
@@ -70,16 +89,18 @@ file, if 2 uniforms are declared, a and b, their locations are not guaranteed to
 be 0 and 1 respectively. GLB handles the ordering of uniforms, and instead of a
 need to query a location, you supply the shader the variable was declared in,
 and the order it was declared. This makes handling uniform variables much
-cleaner.
+cleaner and much more flexible for projects with many shaders. Functionality no
+longer depends on a strict naming scheme. 
 
 ###Design Philosophies of GLB: 
 ####Keep all functionality of OpenGL 
 ####Make GLB as externally consistent as possible 
 ####Make sure OpenGL stays fast through GLB
 ####Make GLB as accessible as possible (this means ANSI C)
+####Keep GLB functional, functions should not depend on persistant state
 
 ##Example:
-The following is an example of using GLB to draw a model.
+The following is an example of using GLB to draw a textured and skinned model.
 
 The Vertex Shader (drawmodel.vs):
 ```glsl
@@ -92,6 +113,7 @@ uniform bool bones_enable = false;
 uniform mat4 t_matrix; // p_matrix * v_matrix * m_matrix
 uniform mat4 bones[255]; 
 
+// this is the vertex layout. specified in vlayout
 in vec3 position;
 in vec3 normal;
 in vec2 uv;
@@ -147,6 +169,13 @@ And finally the C code using GLB:
  extern int nindices;
  int main(int argc, char **argv)
  {
+      // Normal OpenGL Initialization (Through SDL, GLFW, GLEW, etc)
+
+         ...
+         ...
+
+      // End Normal Opengl Initialization 
+
     int err;
     //create and initialize program and shaders
     GLBProgram *program = glbCreateProgram(&err);
@@ -186,7 +215,7 @@ And finally the C code using GLB:
                                           &err);             //optional error code
     assert(!err);
 
-    GLBTexture *texture = glbCreateTextureWithTGA("color.tga", &err);
+    GLBTexture *texture = glbCreateTextureWithTGA(0, "color.tga", &err);
     assert(!err);
 
 
@@ -201,14 +230,17 @@ And finally the C code using GLB:
 ```
 
 ##TODO:
-The following is currently unimplemented and needs to be finished:
+The following is currently incomplete and needs to be finished or added:
 * sampler objects
+* framebuffer objects 
 * program options
+* program input/output layout (?)
 * uniform buffers (non-buffer uniforms should work, though)
 * texture unit allocation (currently only one texture may be used)
+* allow glbProgramTexture to select on the texture occurance, instead of the uniform occurance
 * non-RGBA textures
 * TGA color maps
-* more robust GLSL parsing. (currently working, needs improvement)
+* more robust GLSL parsing. (currently working, needs improvement(eg, multiple uniform definitions on one line))
 * array uniform variables
 * handling of large amounts of inputs, outputs and uniforms
 * allow for row-major matrices (currently forced column major)

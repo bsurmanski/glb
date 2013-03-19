@@ -3,6 +3,8 @@
  * GLB
  * March 01, 2013
  * Brandon Surmanski
+ *
+ * definition of the GLBBuffer object interface
  */
 
 #ifndef _GLB_BUFFER_H
@@ -10,31 +12,7 @@
 
 #include <GL/gl.h>
 
-struct GLBVertexLayout;
-
-struct GLBVBufferData
-{
-    int count; 
-    struct GLBVertexLayout *layout;
-};
-
-struct GLBIBufferData
-{
-    int count;  ///< number of vertex indices
-    int offset; ///< offset from the first
-    int type;   ///< type of vertex indices (must be unsigned byte, short or int)
-};
-
-// TODO: hide definition of structures
-typedef struct GLBBuffer
-{
-    int refcount;
-    GLuint globj;
-    size_t nmemb;
-    size_t sz;
-    struct GLBIBufferData idata;
-    struct GLBVBufferData vdata;
-} GLBBuffer;
+#include "glb_types.h"
 
 enum GLBBufferUsage
 {

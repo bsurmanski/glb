@@ -3,6 +3,8 @@
  * GLB
  * March 01, 2013
  * Brandon Surmanski
+ *
+ * Global include file. Programs linking with GLB should include this file and none others
  */
 
 #ifndef _GLB_H
@@ -14,28 +16,12 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
+#include "glb_types.h"
 #include "buffer.h"
 #include "sampler.h"
 #include "texture.h"
 #include "shader.h"
 #include "program.h"
-
-#define GLB_ASSERT(x,err,jmp) \
-    do { \
-        if(!(x)) { \
-            errcode = err; \
-            goto jmp; \
-        } \
-    } while(0);
-
-typedef struct GLBVertexLayout
-{
-    unsigned int size;
-    unsigned int type;
-    unsigned int normalized;
-    unsigned int stride;
-    unsigned int offset;
-} GLBVertexLayout;
 
 const char *const glbTypeString(int type);
 int glbStringType(int len, const char *const str);

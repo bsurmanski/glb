@@ -5,7 +5,7 @@
  * Brandon Surmanski
  */
 
-#include "glb.h"
+#include "glb_private.h"
 
 #include <stdlib.h>
 

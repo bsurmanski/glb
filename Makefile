@@ -1,4 +1,4 @@
-headers=src/glb.h src/shader.h src/texture.h src/buffer.h src/program.h src/sampler.h 
+headers=src/glb.h src/shader.h src/texture.h src/buffer.h src/program.h src/sampler.h  src/glb_types.h
 files=src/glb.c src/shader.c src/texture.c src/buffer.c src/program.c src/sampler.c src/tga.c
 
 all:

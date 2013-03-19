@@ -5,48 +5,12 @@
  * Brandon Surmanski
  */
 
-#include "glb.h"
+#include "glb_private.h"
 
 #include <alloca.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct GLBProgramOption
-{
-    int tmp;
-    //TODO: options
-} GLBProgramOption;
-
-typedef struct GLBProgramOptions
-{
-   int noptions;
-   int maxoptions;
-   struct GLBProgramOptions *options;  
-} GLBProgramOptions; 
-
-typedef struct GLBProgramIdent
-{
-    int type;
-    int location;
-    int size; // array size
-    int isInt;
-    void *bind; //used for textures
-} GLBProgramIdent;
-
-/**
- * single identifier in a shader program. An identifier represents some sort of
- * variable that is visible externally to OpenGL. This can be an input, output,
- * uniform, sampler, etc.
- *
- * XXX declared in shader.c also. keep synchronzied
- */
-struct GLBShaderIdent
-{
-    int type; ///< GL type
-    int size; ///< size of array
-    char *name; ///< name string
-};
 
 struct GLBProgram
 {
@@ -64,6 +28,9 @@ struct GLBProgram
     struct GLBProgramIdent *outputs[GLB_MAX_OUTPUTS]; //TODO use a linked list instread
 };
 
+/**
+ * gets the array index for a given shader
+ */
 static int glbProgramShaderIndex(int shader_index)
 {
     int ret = 0;
@@ -90,6 +57,9 @@ static int glbProgramShaderIndex(int shader_index)
 
 // forces the program to clean
 
+/**
+ * synchronizes the OpenGL program object state with the GLB state.
+ */
 static int glbProgramClean(GLBProgram *program)
 {
     if(program->dirty)
@@ -211,6 +181,12 @@ ERROR: //TODO: proper errors
 }
 
 /*{{{ Initialization/Deinitializaion*/
+/**
+ * creates a new program object. This also sets the program's reference count to 1, 
+ * so no call to glbRetainProgram is required.
+ * @param errcode_ret optional parameter that returns non-zero on error.
+ * @return a reference to a fully initialized program object
+ */
 GLBProgram *glbCreateProgram (int *errcode_ret)
 {
     int errcode = 0;
@@ -271,6 +247,15 @@ ERROR:
     return NULL;
 }
 
+/**
+ * deletes a program object. Any shaders the program object held will be released. 
+ * Any allocated memory held will be freed.
+ * Any state the program object had will become undefined.
+ * If any remaining references to the program are used, results are undefined.
+ * Users should always release instead of directly deleting, unless they are certain
+ * there are no remaining references in use.
+ * @param program the prgram to be deleted
+ */
 void glbDeleteProgram (GLBProgram *program)
 {
     int i;
@@ -281,15 +266,28 @@ void glbDeleteProgram (GLBProgram *program)
             glbReleaseShader(program->shaders[i]);
         }
     }
-
+    //TODO: delete Identifiers
     glDeleteProgram(program->globj);
+    free(program);
 }
 
+/**
+ * retains the program for use. Increments the reference count.
+ * Any thread that calls 'retain' on a program is responsible for calling
+ * a corisponding release, or there may be memory leaks.
+ * @program the program to retain
+ */
 void glbRetainProgram (GLBProgram *program)
 {
     program->refcount++;
 }
 
+/**
+ * releases the program. This decrements the reference count. If there 
+ * are no remaining references (reference count is 0), the program is also deleted.
+ * To prevent a program object from being deleted, a thread should always retain 
+ * the object.
+ */
 void glbReleaseProgram (GLBProgram *program)
 {
     program->refcount--;
@@ -318,6 +316,18 @@ int glbProgramOption (GLBProgram *program, int option, int value)
 }/*}}}*/
 
 /*{{{ Shaders*/
+
+/**
+ * initialized and attaches a new shader to a given shader stage. The shader is
+ * created using a GLSL shader stored in a text file. The functionality is equivilent
+ * to loading the entire file referenced by 'filenm' into a string, and then passing it
+ * into glbProgramAttachNewShaderSource.
+ * @param program the program to attach to
+ * @param len the length of the shader source string
+ * @param filenm the filename of a text file containing the entire source of a GLSL shader
+ * @param stage the shader stage to attach the new shader to
+ * @returns 0 on success, or any error that glbCreateShaderWithSourceFile would return 
+ */
 int glbProgramAttachNewShaderSourceFile (GLBProgram *program, 
                                            const char *filenm,
                                            enum GLBShaderStage stage)
@@ -336,6 +346,16 @@ ERROR_SOURCE:
     return errcode;
 }
 
+/**
+ * initialized and attaches a new shader to a given shader stage. The shader is
+ * created using a reference to pointer to a string containing the entire source of
+ * a GLSL shader.
+ * @param program the program to attach to
+ * @param len the length of the shader source string
+ * @param mem a pointer to a string containing a GLSL shader
+ * @param stage the shader stage to attach the new shader to
+ * @returns 0 //TODO
+ */
 int glbProgramAttachNewShaderSource (GLBProgram *program, 
                                      int len, const char *mem, enum GLBShaderStage stage)
 {
@@ -344,9 +364,17 @@ int glbProgramAttachNewShaderSource (GLBProgram *program,
     glbProgramAttachShader(program, shader);
     glbReleaseShader(shader);
 
-    return 0; //TODO: error handle
+    return errcode; //TODO: error handle
 }
-
+/**
+ * Attaches a shader to be used by program. The program will also retain the
+ * shader in the process (though glbRetainShader). Any shader currently attached
+ * to the shader stage in which 'shader' replaces will be detached 
+ * (as through a call to glbProgramDetachShaderStage)
+ * @param program, the program to attach to
+ * @param shader, a pointer to the shader to attach.
+ * @returns 0 on success, GLB_INVALID_ARGUMENT if 'shader' is not attached
+ */
 void glbProgramAttachShader (GLBProgram *program, GLBShader *shader)
 {
     glbRetainShader(shader);
@@ -357,14 +385,23 @@ void glbProgramAttachShader (GLBProgram *program, GLBShader *shader)
     int index = glbProgramShaderIndex(shadertype);
     if(program->shaders[index])
     {
-        glbReleaseShader(shader);
+        glDetachShader(program->globj, program->shaders[index]->globj);
+        glbReleaseShader(program->shaders[index]);
     }
     program->shaders[index] = shader;
     program->dirty = 1;
 }
 
-void glbProgramDetachShader (GLBProgram *program, GLBShader *shader)
+/**
+ * find and remove a shader from the given program. The program will
+ * also release the shader in the process (though glbReleaseShader).
+ * @param program, the program to detach from
+ * @param shader, a pointer to the shader to detach
+ * @returns 0 on success, GLB_INVALID_ARGUMENT if 'shader' is not attached
+ */
+int glbProgramDetachShader (GLBProgram *program, GLBShader *shader)
 {
+    int errcode = GLB_INVALID_ARGUMENT;
     int i;
     for(i = 0; i < GLB_NPROGRAM_SHADERS; i++)
     {
@@ -373,20 +410,36 @@ void glbProgramDetachShader (GLBProgram *program, GLBShader *shader)
             glDetachShader(program->globj, shader->globj);
             glbReleaseShader(shader);
             program->shaders[i] = NULL;
+            errcode = 0;
+            program->dirty = 1;
             break;
         }
     }
 
-    program->dirty = 1;
+    return errcode;
 }
 
-void glbProgramDetachShaderStage (GLBProgram *program, enum GLBShaderStage stage)
+/**
+ * removes the shader attached to 'stage' from the given program. The program will
+ * also release the shader in the process (though glbReleaseShader).
+ * @param program, the program to detach from
+ * @stage, the shader stage to detach, can be GLB_{VERTEX,TESS_CONTROL,TESS_EVALUATION,
+ * GEOMETRY,FRAGMENT}_SHADER.
+ * @returns 0 on success, GLB_INVALID_ARGUMENT if 'stage' is not attached
+ */
+int glbProgramDetachShaderStage (GLBProgram *program, enum GLBShaderStage stage)
 {
+    int errcode = GLB_INVALID_ARGUMENT;
     int index = glbProgramShaderIndex(stage);
-    glDetachShader(program->globj, program->shaders[index]->globj);
-    glbReleaseShader(program->shaders[index]);
-    program->shaders[index] = NULL;
-    program->dirty = 1;
+    if(program->shaders[index])
+    {
+        glDetachShader(program->globj, program->shaders[index]->globj);
+        glbReleaseShader(program->shaders[index]);
+        program->shaders[index] = NULL;
+        errcode = 0;
+        program->dirty = 1;
+    }
+    return errcode;
 }/*}}}*/
 
 /*{{{ Bindables */
