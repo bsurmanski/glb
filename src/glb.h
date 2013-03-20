@@ -1,10 +1,8 @@
-/**
+/*
  * glb.h
  * GLB
  * March 01, 2013
  * Brandon Surmanski
- *
- * Global include file. Programs linking with GLB should include this file and none others
  */
 
 #ifndef _GLB_H
@@ -81,16 +79,16 @@ enum GLBPrimativeTypes
 
 enum GLBError
 {
-    GLB_SUCCESS = 0,
-    GLB_FILE_NOT_FOUND,
+    GLB_SUCCESS = 0, ///< guarenteed to be zero. A function completed without error
+    GLB_FILE_NOT_FOUND, ///< a file string parameter does not refer to an existing file
     GLB_READ_ERROR,
     GLB_WRITE_ERROR,
     GLB_OUT_OF_MEMORY,
     GLB_INVALID_ARGUMENT,
-    GLB_COMPILE_ERROR,
+    GLB_COMPILE_ERROR, ///< a GLSL shader failed to compile
     GLB_UNKNOWN_ERROR,
-    GLB_UNIMPLEMENTED,
-    GLB_GL_TOO_OLD,
+    GLB_UNIMPLEMENTED, ///< a feature is currently not implemented, and may be in the future
+    GLB_GL_TOO_OLD, ///< a feature depends on an OpenGL version newer than the one in use
 };
 
 enum GLBScalar

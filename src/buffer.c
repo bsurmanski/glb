@@ -1,8 +1,11 @@
 /**
  * buffer.c
+ * @file buffer.h
  * GLB
- * March 01, 2013
- * Brandon Surmanski
+ * @date March 01, 2013
+ * @author Brandon Surmanski
+ *
+ * @brief definition of the GLBBuffer object interface
  */
 
 #include "glb_private.h"

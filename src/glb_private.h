@@ -1,4 +1,5 @@
 /**
+ * @internal
  * glb_private.h
  * GLB
  * March 18, 2013

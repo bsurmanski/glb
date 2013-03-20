@@ -1,10 +1,8 @@
-/**
+/*
  * shader.h
  * GLB
  * March 01, 2013
  * Brandon Surmanski
- *
- * definition of the GLBShader object interface
  */
 
 #ifndef _GLB_SHADER_H

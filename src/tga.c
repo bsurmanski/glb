@@ -1,9 +1,12 @@
 /**
+ * @internal
  * tga.c
  * @file    tga.h
  * obj
  * @date    May 29, 2012
  * @author  Brandon Surmanski
+ *
+ * @brief used internally for TGA loading
  */
 
 #include <assert.h>

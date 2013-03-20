@@ -1,8 +1,11 @@
 /**
  * sampler.c
+ * @file sampler.h
  * GLB
- * March 02, 2013
- * Brandon Surmanski
+ * @date March 02, 2013
+ * @author Brandon Surmanski
+ *
+ * @brief definition of the GLBSampler object interface
  */
 
 #include "glb_private.h"

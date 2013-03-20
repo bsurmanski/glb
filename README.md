@@ -240,7 +240,7 @@ The following is currently incomplete and needs to be finished or added:
 * non-RGBA textures
 * TGA color maps
 * more robust GLSL parsing. (currently working, needs improvement(eg, multiple uniform definitions on one line))
-* array uniform variables
+* uniform array length verification variables
 * handling of large amounts of inputs, outputs and uniforms
 * allow for row-major matrices (currently forced column major)
 

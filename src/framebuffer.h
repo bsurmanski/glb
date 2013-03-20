@@ -1,4 +1,4 @@
-/**
+/*
  * framebuffer.h
  * GLB
  * March 18, 2013

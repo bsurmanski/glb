@@ -1,9 +1,10 @@
 /**
+ * @internal
  * tga.h
  * obj
  * May 29, 2012
  * Brandon Surmanski
- *
+ * 
  * Private TGA loading header used by GLBTexture
  */
 

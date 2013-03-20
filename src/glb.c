@@ -1,8 +1,25 @@
 /**
- * glb.h
+ * glb.c
+ * @file glb.h
  * GLB
- * March 06, 2013
- * Brandon Surmanski
+ * @date March 06, 2013
+ * @author Brandon Surmanski
+ *
+ * @brief Global include file. Programs linking with GLB should include this file and none others
+ *
+ * @mainpage 
+ * GLB
+ *
+ * GLB is an abstraction layer built upon OpenGL created to reduce the little
+ * annoyances of working with vanilla OpenGL. GLB can be thought of as a redesign
+ * of the OpenGL interface, designed to clean up and modernize the OpenGL API.
+ * There is no new functionality in GLB, but what it does have is easier to learn
+ * than OpenGL and is easier to work with. So far the development of GLB has been
+ * focused on cleaning up the Shader, Program, Texture, and Buffer interfaces.
+ * All GLB calls end up calling OpenGL code to function, so it should be just as 
+ * portible as OpenGL itself.
+ *
+ * See the supplied README for more information
  */
 
 #include <stdbool.h>
@@ -287,7 +304,7 @@ bool glbTypeIsInt(int type)
 {
     return (type == GLB_BYTE || type == GLB_UNSIGNED_BYTE ||
             type == GLB_SHORT || type == GLB_UNSIGNED_SHORT ||
-            type == GLB_INT || type == GLB_UNSIGNED_INT ||
+            type == GLB_INT || type == GLB_UNSIGNED_INT || type == GLB_BOOL || 
             type == GLB_IVEC2 || type == GLB_IVEC3 || type == GLB_IVEC4 ||
             type == GLB_UIVEC2 || type == GLB_UIVEC3 || type == GLB_UIVEC4);
 }

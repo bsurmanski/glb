@@ -1,10 +1,8 @@
-/**
+/*
  * texture.h
  * GLB
  * March 01, 2013
  * Brandon Surmanski
- *
- * definition of the GLBTexture object interface
  */
 
 #ifndef _GLB_TEXTURE_H

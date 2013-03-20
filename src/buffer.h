@@ -1,10 +1,8 @@
-/**
+/*
  * buffer.h
  * GLB
  * March 01, 2013
  * Brandon Surmanski
- *
- * definition of the GLBBuffer object interface
  */
 
 #ifndef _GLB_BUFFER_H

@@ -1,10 +1,8 @@
-/**
+/*
  * sampler.h
  * GLB
  * March 02, 2013
  * Brandon Surmanski
- *
- * definition of the GLBSampler object interface
  */
 
 #ifndef _GLB_SAMPLER_H

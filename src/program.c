@@ -1,8 +1,11 @@
 /**
  * program.c
+ * @file program.h
  * glb
- * March 01, 2013
- * Brandon Surmanski
+ * @date March 01, 2013
+ * @author Brandon Surmanski
+ *
+ * @brief definition of the GLBProgram object interface
  */
 
 #include "glb_private.h"
@@ -248,7 +251,7 @@ void glbDeleteProgram (GLBProgram *program)
  * retains the program for use. Increments the reference count.
  * Any thread that calls 'retain' on a program is responsible for calling
  * a corisponding release, or there may be memory leaks.
- * @program the program to retain
+ * @param program the program to retain
  */
 void glbRetainProgram (GLBProgram *program)
 {
@@ -296,7 +299,6 @@ int glbProgramOption (GLBProgram *program, int option, int value)
  * to loading the entire file referenced by 'filenm' into a string, and then passing it
  * into glbProgramAttachNewShaderSource.
  * @param program the program to attach to
- * @param len the length of the shader source string
  * @param filenm the filename of a text file containing the entire source of a GLSL shader
  * @param stage the shader stage to attach the new shader to
  * @returns 0 on success, or any error that glbCreateShaderWithSourceFile would return
@@ -344,8 +346,8 @@ int glbProgramAttachNewShaderSource (GLBProgram *program,
  * shader in the process (though glbRetainShader). Any shader currently attached
  * to the shader stage in which 'shader' replaces will be detached
  * (as through a call to glbProgramDetachShaderStage)
- * @param program, the program to attach to
- * @param shader, a pointer to the shader to attach.
+ * @param program the program to attach to
+ * @param shader a pointer to the shader to attach.
  * @returns 0 on success, GLB_INVALID_ARGUMENT if 'shader' is not attached
  */
 void glbProgramAttachShader (GLBProgram *program, GLBShader *shader)
@@ -368,8 +370,8 @@ void glbProgramAttachShader (GLBProgram *program, GLBShader *shader)
 /**
  * find and remove a shader from the given program. The program will
  * also release the shader in the process (though glbReleaseShader).
- * @param program, the program to detach from
- * @param shader, a pointer to the shader to detach
+ * @param program the program to detach from
+ * @param shader a pointer to the shader to detach
  * @returns 0 on success, GLB_INVALID_ARGUMENT if 'shader' is not attached
  */
 int glbProgramDetachShader (GLBProgram *program, GLBShader *shader)
@@ -395,8 +397,8 @@ int glbProgramDetachShader (GLBProgram *program, GLBShader *shader)
 /**
  * removes the shader attached to 'stage' from the given program. The program will
  * also release the shader in the process (though glbReleaseShader).
- * @param program, the program to detach from
- * @stage, the shader stage to detach, can be GLB_{VERTEX,TESS_CONTROL,TESS_EVALUATION,
+ * @param program the program to detach from
+ * @param stage the shader stage to detach, can be GLB_{VERTEX,TESS_CONTROL,TESS_EVALUATION,
  * GEOMETRY,FRAGMENT}_SHADER.
  * @returns 0 on success, GLB_INVALID_ARGUMENT if 'stage' is not attached
  */
@@ -433,7 +435,8 @@ static int glbProgramUniformIdent(GLBProgram *program, GLBProgramIdent *ident,
 
     if(n > ident->size)
     {
-        return GLB_INVALID_ARGUMENT;
+        //TODO: enable this once array length parsing is finished
+        //return GLB_INVALID_ARGUMENT;
     }
 
     glUseProgram(program->globj);
@@ -747,7 +750,14 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
     glUseProgram(program->globj);
     glBindBuffer(GL_ARRAY_BUFFER, array->globj);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->globj);
-    glBindFramebuffer(GL_FRAMEBUFFER, program->framebuffer);
+    /*
+    if(program->framebuffer)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, program->framebuffer->globj);
+    } else 
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }*/ //TODO re-enable once framebuffers work
 
     // set correct draw buffers
     GLenum *drawbufs = alloca(sizeof(GLenum) * program->noutputs);

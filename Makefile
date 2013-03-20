@@ -4,6 +4,10 @@ files=src/glb.c src/shader.c src/texture.c src/buffer.c src/program.c src/sample
 all:
 	gcc $(files) -std=c99 -pedantic -o libglb.so -g -lGL -lm -fPIC --shared -Wall -DDEBUG -D GL_GLEXT_PROTOTYPES -Wno-int-to-pointer-cast
 
+.PHONY: docs
+docs:
+	doxygen doc/Doxyfile
+
 install:
 	cp libglb.so /usr/local/lib/
 	mkdir -p /usr/local/include/glb/

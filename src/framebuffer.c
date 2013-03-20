@@ -1,8 +1,9 @@
 /**
  * framebuffer.c
+ * @file framebuffer.h
  * GLB
- * March 18, 2013
- * Brandon Surmanski
+ * @date March 18, 2013
+ * @author Brandon Surmanski
  */
 
 #include "glb_private.h"

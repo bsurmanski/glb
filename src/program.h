@@ -1,10 +1,8 @@
-/**
+/*
  * program.h
  * GLB
  * March 01, 2013
  * Brandon Surmanski
- *
- * definition of the GLBProgram object interface
  */
 
 #ifndef _GLB_PROGRAM_H

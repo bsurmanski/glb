@@ -1,8 +1,11 @@
 /**
  * texture.c
+ * @file texture.h
  * GLB
- * March 01, 2013
- * Brandon Surmanski
+ * @date March 01, 2013
+ * @author Brandon Surmanski
+ *
+ * @brief definition of the GLBTexture object interface
  */
 
 #include "glb_private.h"
@@ -46,6 +49,23 @@ static int glbTextureDimensions(GLBTexture *texture)
     return 1; //image has to be at least 1D
 }
 
+/**
+ * creates a new texture object.
+ *
+ * @param flags TODO
+ * @param format the texture format of the newly created image. The passed pointer 
+ * should also be in a compatible format. 
+ * @param x the width of the new texture
+ * @param y the height of the new texture. Must be 1 for 1D textures, and must be
+ * greater than one for 2D textures.
+ * @param z the depth of the new texture. This value is 1 for non-3D textures and
+ * greater than one for 3D textures.
+ * @param 'ptr' may be a null pointer. In this case, texture memory is allocated 
+ * to accommodate a texture of correct size. The image is undefined if
+ * the user tries to apply an uninitialized portion of the texture to a primative.
+ * @param errcode_ret an optional pointer used to return any error codes. errcode_ret
+ * will be set to GLB_SUCCESS (0) if the operation was successful
+ */
 GLBTexture* glbCreateTexture (enum GLBAccess flags,
                               enum GLBImageFormat format,
                               int x,
@@ -125,7 +145,7 @@ GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
     void *buf = malloc(glbTGA_image_sz(&header));
     errcode = glbTGA_image_read(file, &header, buf);
     GLB_ASSERT(!errcode, GLB_UNIMPLEMENTED, ERROR_IMG);
-    GLBTexture *texture = glbCreateTexture(0, GLB_RGBA, //TODO: non-rgba formats
+    GLBTexture *texture = glbCreateTexture(0, GLB_RGBA, ///<TODO: non-rgba texture formats
                           header.img.w, header.img.h, 1, buf, &errcode);
     free(buf);
     GLB_ASSERT(!errcode, errcode, ERROR_READ);
