@@ -10,6 +10,8 @@
 
 #include "glb_types.h"
 
+#define GLB_FRAMEBUFFER_COLORS_MAX 16
+
 GLBFramebuffer *glbCreateFramebuffer(int *errcode_ret);
 void            glbDeleteFramebuffer(GLBFramebuffer *framebuffer);
 void            glbRetainFramebuffer(GLBFramebuffer *framebuffer);

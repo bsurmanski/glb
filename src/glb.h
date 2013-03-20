@@ -18,6 +18,7 @@
 
 #include "glb_types.h"
 #include "buffer.h"
+#include "framebuffer.h"
 #include "sampler.h"
 #include "texture.h"
 #include "shader.h"

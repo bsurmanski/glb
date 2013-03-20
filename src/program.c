@@ -198,7 +198,7 @@ GLBProgram *glbCreateProgram (int *errcode_ret)
     program->globj = glCreateProgram();
     GLB_ASSERT(program, GLB_UNKNOWN_ERROR, ERROR_CREATE);
 
-    //TODO: max this more flexible
+    program->framebuffer = NULL;
     memset(program->shaders, 0, sizeof(void*) * GLB_NPROGRAM_SHADERS);
     //memset(program->textures, 0, sizeof(void*) * GLB_MAX_TEXTURES);
     memset(program->inputs, 0, sizeof(void*) * GLB_MAX_INPUTS);
@@ -680,7 +680,7 @@ int glbProgramUniformBufferRange (GLBProgram *program, char *blocknm,
     return GLB_UNIMPLEMENTED;
 }/*}}}*/
 
-/*{{{ Layouts*/
+/*{{{ Layouts, Inputs, Outputs*/
 int glbProgramUseVertexLayout (GLBProgram *program, int n, struct GLBVertexLayout *layout)
 {
     glbProgramClean(program);
@@ -703,7 +703,17 @@ int glbProgramOutputLayout (GLBProgram *program, int n, char **outputs)
 {
     glbProgramClean(program);
     return GLB_UNIMPLEMENTED;
-}/*}}}*/
+}
+
+int glbProgramOutput (GLBProgram *program, GLBFramebuffer *output)
+{
+    glbRetainFramebuffer(output);
+    glbReleaseFramebuffer(program->framebuffer);
+    program->framebuffer = output;
+    return GLB_SUCCESS;
+}
+
+/*}}}*/
 
 /*{{{ Draw */
 int glbProgramDraw (GLBProgram *program, GLBBuffer *array)
@@ -737,6 +747,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
     glUseProgram(program->globj);
     glBindBuffer(GL_ARRAY_BUFFER, array->globj);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->globj);
+    glBindFramebuffer(GL_FRAMEBUFFER, program->framebuffer);
 
     // set correct draw buffers
     GLenum *drawbufs = alloca(sizeof(GLenum) * program->noutputs);
@@ -747,6 +758,8 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
     glDrawBuffers(program->noutputs, drawbufs);
 
     // bind all textures
+    /*
+    TODO: proper texture binding
     for(i = 0; i < GLB_MAX_TEXTURES; i++)
     {
         if(program->textures[i])
@@ -755,7 +768,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(tex->target, tex->globj);
         }
-    }
+    }*/
 
     // bind correct vertex data locations
     // if a layout is given, use the layout, else guess from the program
@@ -776,7 +789,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
             int attrib_type = program->inputs[i]->type;
             int attrib_sz = glbTypeSizeof(attrib_type);
             glEnableVertexAttribArray(i);
-            //TODO: change float
+            //TODO: change GL_FLOAT 
             if(program->inputs[i]->isInt)
             {
                 glVertexAttribIPointer(program->inputs[i]->location,

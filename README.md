@@ -233,11 +233,10 @@ And finally the C code using GLB:
 The following is currently incomplete and needs to be finished or added:
 * sampler objects
 * framebuffer objects 
+* attach mipmap texture levels to framebuffer
 * program options
 * program input/output layout (?)
 * uniform buffers (non-buffer uniforms should work, though)
-* texture unit allocation (currently only one texture may be used)
-* allow glbProgramTexture to select on the texture occurance, instead of the uniform occurance
 * non-RGBA textures
 * TGA color maps
 * more robust GLSL parsing. (currently working, needs improvement(eg, multiple uniform definitions on one line))

@@ -64,7 +64,8 @@ struct GLBFramebuffer
     int refcount;
     GLuint globj;
 
-    int ncolors;
+    GLenum status; ///< current status as retrieved from glCheckFramebufferStatus
+    int ncolors;    ///< number of color textures currently bound
     GLBTexture *depth;
     GLBTexture *stencil;
     GLBTexture **colors;
@@ -164,6 +165,7 @@ struct GLBProgram
     int nuniforms;  ///< number of uniforms in all attached shaders
     int ninputs;    ///< number of inputs in all attached shaders
     int noutputs;   ///< number of ouputs in all attached shaders
+    struct GLBFramebuffer *framebuffer;
     struct GLBProgramOptions *options;
     struct GLBProgramIdent *textures[GLB_MAX_TEXTURES];
     struct GLBProgramIdent *uniforms[GLB_MAX_UNIFORMS];
