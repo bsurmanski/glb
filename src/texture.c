@@ -21,14 +21,14 @@ struct GLBTextureFormat
     uint16_t type;
 };
 
-static struct GLBTextureFormat FORMAT[] = 
+static struct GLBTextureFormat FORMAT[] =
 {
     {4, GL_RGBA8,               GL_RGBA,            GL_UNSIGNED_BYTE},  // RGBA
     {3, GL_RGB8,                GL_RGB,             GL_UNSIGNED_BYTE},  // RGB
     {4, GL_DEPTH_COMPONENT32,   GL_DEPTH_COMPONENT, GL_FLOAT},          // DEPTH
     {1, GL_R8,                  GL_RED,             GL_FLOAT},          // STENCIL
     {4, GL_DEPTH24_STENCIL8,    GL_DEPTH_STENCIL,   GL_FLOAT},          // DEPTH-STENCIL
-    {1, GL_R8UI,                GL_RED,             GL_UNSIGNED_BYTE},  // BYTE 
+    {1, GL_R8UI,                GL_RED,             GL_UNSIGNED_BYTE},  // BYTE
     {2, GL_RG16UI,              GL_RG_INTEGER,      GL_UNSIGNED_SHORT}, // SHORT
     {4, GL_R32UI,               GL_RED_INTEGER,     GL_UNSIGNED_INT},   // INT
 };
@@ -46,7 +46,7 @@ static int glbTextureDimensions(GLBTexture *texture)
     return 1; //image has to be at least 1D
 }
 
-GLBTexture* glbCreateTexture (enum GLBAccess flags, 
+GLBTexture* glbCreateTexture (enum GLBAccess flags,
                               enum GLBImageFormat format,
                               int x,
                               int y,
@@ -54,10 +54,10 @@ GLBTexture* glbCreateTexture (enum GLBAccess flags,
                               void *ptr,
                               int *errcode_ret)
 {
-    int errcode = 0;
+    int errcode;
 
     GLBTexture *texture = malloc(sizeof(GLBTexture));
-    GLB_ASSERT(texture, GLB_OUT_OF_MEMORY,  ERROR); 
+    GLB_ASSERT(texture, GLB_OUT_OF_MEMORY,  ERROR);
     if(x < 1) x = 1;
     if(y < 1) y = 1;
     if(z < 1) z = 1;
@@ -72,51 +72,49 @@ GLBTexture* glbCreateTexture (enum GLBAccess flags,
 
     switch(glbTextureDimensions(texture))
     {
-    
+
         case 3:
             texture->target = GL_TEXTURE_3D;
             glBindTexture(GL_TEXTURE_3D, texture->globj);
-            glTexImage3D(GL_TEXTURE_3D, 0, FORMAT[format].internalFormat, 
+            glTexImage3D(GL_TEXTURE_3D, 0, FORMAT[format].internalFormat,
                          x, y, z, 0, FORMAT[format].format, FORMAT[format].type, ptr);
             break;
         case 2:
             texture->target = GL_TEXTURE_2D;
             glBindTexture(GL_TEXTURE_2D, texture->globj);
-            glTexImage2D(GL_TEXTURE_2D, 0, FORMAT[format].internalFormat, 
+            glTexImage2D(GL_TEXTURE_2D, 0, FORMAT[format].internalFormat,
                          x, y, 0, FORMAT[format].format, FORMAT[format].type, ptr);
             break;
         case 1:
             texture->target = GL_TEXTURE_1D;
             glBindTexture(GL_TEXTURE_1D, texture->globj);
-            glTexImage1D(GL_TEXTURE_1D, 0, FORMAT[format].internalFormat, 
+            glTexImage1D(GL_TEXTURE_1D, 0, FORMAT[format].internalFormat,
                          x, 0, FORMAT[format].format, FORMAT[format].type, ptr);
             break;
         default: //error, should never reach here
-            errcode = GLB_UNIMPLEMENTED; 
+            errcode = GLB_UNIMPLEMENTED;
             goto UNKNOWN_ERROR;
     }
 
     glTexParameteri(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    GLB_SET_ERROR(GLB_SUCCESS);
     return texture;
 
 UNKNOWN_ERROR:
     glDeleteTextures(1, &texture->globj);
     free(texture);
 ERROR:
-    if(errcode_ret)
-    {
-        *errcode_ret = errcode;
-    }
+    GLB_SET_ERROR(errcode);
     return NULL;
 }
 
-GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags, 
+GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
                                      const char *filenm,
                                      int *errcode_ret)
 {
-    int errcode = 0;
+    int errcode;
     FILE *file = fopen(filenm, "rb");
     GLB_ASSERT(file, GLB_FILE_NOT_FOUND, ERROR);
 
@@ -132,17 +130,16 @@ GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
     free(buf);
     GLB_ASSERT(!errcode, errcode, ERROR_READ);
     fclose(file);
+
+    GLB_SET_ERROR(GLB_SUCCESS);
     return texture;
-    
+
 ERROR_IMG:
     free(buf);
 ERROR_READ:
     fclose(file);
 ERROR:
-    if(errcode_ret)
-    {
-        *errcode_ret = errcode;
-    }
+    GLB_SET_ERROR(errcode);
     return NULL;
 }
 
@@ -188,7 +185,7 @@ int glbTextureGenerateMipmap(GLBTexture *texture)
 
 int glbTextureSampler (GLBTexture *texture, struct GLBSampler *sampler)
 {
-    if(!texture) return GLB_INVALID_ARGUMENT; 
+    if(!texture) return GLB_INVALID_ARGUMENT;
 
     if(texture->sampler)
     {
@@ -237,10 +234,10 @@ int glbFillTexture (GLBTexture *texture, int level,
         {
             for(i = 0; i < x; i++)
             {
-                memcpy(&buf[((k + origin[2]) * texture->z) * 
-                            ((j + origin[1]) * texture->y) * 
-                            ((i + origin[0]) * texture->x)], 
-                        fill_color, 
+                memcpy(&buf[((k + origin[2]) * texture->z) *
+                            ((j + origin[1]) * texture->y) *
+                            ((i + origin[0]) * texture->x)],
+                        fill_color,
                         sizeof(uint32_t)); //TODO: non-rgba
             }
         }
@@ -251,8 +248,8 @@ int glbFillTexture (GLBTexture *texture, int level,
 }
 
 //TODO: is size required?
-int glbWriteTexture(GLBTexture *texture, 
-                    int level, int *origin, 
+int glbWriteTexture(GLBTexture *texture,
+                    int level, int *origin,
                     int *region, int size, void *ptr)
 {
     if(!texture || !ptr) return GLB_INVALID_ARGUMENT;
@@ -276,7 +273,7 @@ int glbWriteTexture(GLBTexture *texture,
     }
 }
 
-int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region, 
+int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region,
                     int size, void *ptr)
 {
     if(!texture || !ptr) return GLB_INVALID_ARGUMENT;
@@ -294,7 +291,7 @@ int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region,
     if(origin[0] != 0 || origin[1] != 0 ||
        region[0] != levelw || region[1] != levelh)
     {
-        readbuf = malloc(format->depth * levelw * levelh); 
+        readbuf = malloc(format->depth * levelw * levelh);
     }
 
     // kind of silly how they dont have glGetTexSubImage

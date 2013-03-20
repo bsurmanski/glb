@@ -77,8 +77,8 @@ int glbTGA_header_is_valid(glbTGA_header *h)
         return false;
 
     //validate img_type
-    if(h->img_type != ITYPE_NONE && h->img_type != ITYPE_UCCM && h->img_type != ITYPE_UCTC 
-            && h->img_type != ITYPE_UCBW && h->img_type != ITYPE_RLECM 
+    if(h->img_type != ITYPE_NONE && h->img_type != ITYPE_UCCM && h->img_type != ITYPE_UCTC
+            && h->img_type != ITYPE_UCBW && h->img_type != ITYPE_RLECM
             && h->img_type != ITYPE_RLETC && h->img_type != ITYPE_RLEBW)
         return false;
     return true;
@@ -148,10 +148,10 @@ int glbTGA_image_read(FILE *fd, glbTGA_header *h, void *data)
     if(HAS_CMAP(*h)){
         //assert(false && "TGA Color map not yet supported");
         return -1; ///< TODO: proper color map for tga
-            //cmap = malloc(cm_sz); 
-            //read(fd, cmap, cm_sz); 
+            //cmap = malloc(cm_sz);
+            //read(fd, cmap, cm_sz);
     }
-    
+
     uint8_t nrepeat = 0;
     uint8_t rle_flag = 0;
     uint8_t Bpp = glbTGA_pxl_sz(h);

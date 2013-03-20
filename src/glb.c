@@ -20,7 +20,7 @@ struct TypeAssociation
     int type;
 };
 
-static struct TypeAssociation types[] = 
+static struct TypeAssociation types[] =
 {
     // scalar
     {"bool", 4, GLB_BOOL},
@@ -295,7 +295,7 @@ bool glbTypeIsInt(int type)
 bool glbTypeIsFloat(int type)
 {
     return (type == GLB_FLOAT || glbTypeIsVec(type) ||
-            type == GLB_MAT2 || type == GLB_MAT3 || type == GLB_MAT4 || 
+            type == GLB_MAT2 || type == GLB_MAT3 || type == GLB_MAT4 ||
             type == GLB_MAT2x3 || type == GLB_MAT2x4 || type == GLB_MAT3x2 ||
             type == GLB_MAT3x4 || type == GLB_MAT4x2 || type == GLB_MAT4x3);
 }
@@ -335,7 +335,7 @@ bool glbTypeIsMatrix(int type)
 bool glbTypeIsOpaque(int type)
 {
     return (type == GLB_SAMPLER_1D || type == GLB_SAMPLER_2D || type == GLB_SAMPLER_3D ||
-            type == GLB_SAMPLER_CUBE || type == GLB_SAMPLER_1D_SHADOW || 
+            type == GLB_SAMPLER_CUBE || type == GLB_SAMPLER_1D_SHADOW ||
             type == GLB_SAMPLER_2D_SHADOW || type == GLB_SAMPLER_CUBE_SHADOW);
 }
 
@@ -443,7 +443,7 @@ const char *const glbErrorString(int error)
 {
     switch(error)
     {
-        case GLB_NO_ERROR:
+        case GLB_SUCCESS:
             return "no error";
         case GLB_FILE_NOT_FOUND:
             return "file not found";

@@ -12,22 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct GLBProgram
-{
-    int refcount;   ///< reference to this object
-    GLuint globj;   ///< reference to GL program object
-    int dirty;      ///< requires a relink
-    GLBShader *shaders[GLB_NPROGRAM_SHADERS]; ///< reference to attached shader
-    int nuniforms;
-    int ninputs;
-    int noutputs;
-    struct GLBProgramOptions *options;
-    struct GLBProgramIdent *textures[GLB_MAX_TEXTURES];
-    struct GLBProgramIdent *uniforms[GLB_MAX_UNIFORMS];
-    struct GLBProgramIdent *inputs[GLB_MAX_INPUTS];
-    struct GLBProgramIdent *outputs[GLB_MAX_OUTPUTS]; //TODO use a linked list instread
-};
-
 /**
  * gets the array index for a given shader
  */
@@ -75,27 +59,27 @@ static int glbProgramClean(GLBProgram *program)
         }
 
         // free existing inputs
-        for(i = 0; i < program->ninputs; i++) 
-        { 
-            if(program->inputs[i]) 
+        for(i = 0; i < program->ninputs; i++)
+        {
+            if(program->inputs[i])
             {
                 free(program->inputs[i]);
             }
         }
 
-        // free existing outputs 
-        for(i = 0; i < program->noutputs; i++) 
-        { 
-            if(program->outputs[i]) 
+        // free existing outputs
+        for(i = 0; i < program->noutputs; i++)
+        {
+            if(program->outputs[i])
             {
                 free(program->outputs[i]);
             }
         }
 
-        // free existing uniforms 
-        for(i = 0; i < program->nuniforms; i++) 
-        { 
-            if(program->uniforms[i]) 
+        // free existing uniforms
+        for(i = 0; i < program->nuniforms; i++)
+        {
+            if(program->uniforms[i])
             {
                 free(program->uniforms[i]);
             }
@@ -108,6 +92,7 @@ static int glbProgramClean(GLBProgram *program)
         GLBShader *fshader = program->shaders[glbProgramShaderIndex(GLB_FRAGMENT_SHADER)];
         program->ninputs = 0;
         program->noutputs = 0;
+        int nopaques = 0;
         if(!vshader || !fshader) goto ERROR;
         struct GLBShaderIdent **s_ident = vshader->inputs;
         struct GLBProgramIdent **p_ident = program->inputs;
@@ -118,6 +103,7 @@ static int glbProgramClean(GLBProgram *program)
             (*p_ident)->location = glGetAttribLocation(program->globj, (*s_ident)->name);
             (*p_ident)->isInt = glbTypeIsInt((*p_ident)->type);
             (*p_ident)->bind = NULL;
+            (*p_ident)->order = program->ninputs;
             p_ident++;
             s_ident++;
             program->ninputs++;
@@ -132,6 +118,7 @@ static int glbProgramClean(GLBProgram *program)
             (*p_ident)->location = glGetFragDataLocation(program->globj, (*s_ident)->name);
             (*p_ident)->isInt = glbTypeIsInt((*p_ident)->type);
             (*p_ident)->bind = NULL;
+            (*p_ident)->order = program->noutputs;
             p_ident++;
             s_ident++;
             program->noutputs++;
@@ -150,6 +137,14 @@ static int glbProgramClean(GLBProgram *program)
                 (*p_ident)->type = (*s_ident)->type;
                 (*p_ident)->location = glGetUniformLocation(program->globj, (*s_ident)->name);
                 (*p_ident)->isInt = glbTypeIsInt((*p_ident)->type);
+                if(glbTypeIsOpaque((*p_ident)->type))
+                {
+                    (*p_ident)->order = nopaques;
+                    nopaques++;
+                } else
+                {
+                    (*p_ident)->order = program->nuniforms;
+                }
                 (*p_ident)->bind = NULL;
                 (*p_ident)->size = 1; //TODO, parse
                 p_ident++;
@@ -182,14 +177,14 @@ ERROR: //TODO: proper errors
 
 /*{{{ Initialization/Deinitializaion*/
 /**
- * creates a new program object. This also sets the program's reference count to 1, 
+ * creates a new program object. This also sets the program's reference count to 1,
  * so no call to glbRetainProgram is required.
  * @param errcode_ret optional parameter that returns non-zero on error.
  * @return a reference to a fully initialized program object
  */
 GLBProgram *glbCreateProgram (int *errcode_ret)
 {
-    int errcode = 0;
+    int errcode;
 
     GLBProgram *program = malloc(sizeof(GLBProgram));
     GLB_ASSERT(program, GLB_OUT_OF_MEMORY, ERROR);
@@ -203,42 +198,20 @@ GLBProgram *glbCreateProgram (int *errcode_ret)
     program->globj = glCreateProgram();
     GLB_ASSERT(program, GLB_UNKNOWN_ERROR, ERROR_CREATE);
 
-    int i;
-    for(i = 0; i < GLB_NPROGRAM_SHADERS; i++)
-    {
-        program->shaders[i] = NULL; 
-    }
-
     //TODO: max this more flexible
-    for(i = 0; i < GLB_MAX_TEXTURES; i++)
-    {
-        program->textures[i] = NULL;
-    }
+    memset(program->shaders, 0, sizeof(void*) * GLB_NPROGRAM_SHADERS);
+    //memset(program->textures, 0, sizeof(void*) * GLB_MAX_TEXTURES);
+    memset(program->inputs, 0, sizeof(void*) * GLB_MAX_INPUTS);
+    memset(program->outputs, 0, sizeof(void*) * GLB_MAX_OUTPUTS);
+    memset(program->uniforms, 0, sizeof(void*) * GLB_MAX_UNIFORMS);
 
-    for(i = 0; i < GLB_MAX_INPUTS; i++)
-    {
-        program->inputs[i] = NULL;
-    }
-
-    for(i = 0; i < GLB_MAX_OUTPUTS; i++)
-    {
-        program->outputs[i] = NULL;
-    }
-
-    for(i = 0; i < GLB_MAX_UNIFORMS; i++)
-    {
-        program->uniforms[i] = NULL;
-    }
-
+    GLB_SET_ERROR(GLB_SUCCESS);
     return program;
 
 ERROR_CREATE:
     free(program);
 ERROR:
-    if(errcode_ret)
-    {
-        *errcode_ret = errcode;
-    }
+    GLB_SET_ERROR(errcode);
 
 #ifdef DEBUG
     printf("GLBCreateProgram Error: %s\n", glbErrorString(errcode));
@@ -248,7 +221,7 @@ ERROR:
 }
 
 /**
- * deletes a program object. Any shaders the program object held will be released. 
+ * deletes a program object. Any shaders the program object held will be released.
  * Any allocated memory held will be freed.
  * Any state the program object had will become undefined.
  * If any remaining references to the program are used, results are undefined.
@@ -283,9 +256,9 @@ void glbRetainProgram (GLBProgram *program)
 }
 
 /**
- * releases the program. This decrements the reference count. If there 
+ * releases the program. This decrements the reference count. If there
  * are no remaining references (reference count is 0), the program is also deleted.
- * To prevent a program object from being deleted, a thread should always retain 
+ * To prevent a program object from being deleted, a thread should always retain
  * the object.
  */
 void glbReleaseProgram (GLBProgram *program)
@@ -326,13 +299,13 @@ int glbProgramOption (GLBProgram *program, int option, int value)
  * @param len the length of the shader source string
  * @param filenm the filename of a text file containing the entire source of a GLSL shader
  * @param stage the shader stage to attach the new shader to
- * @returns 0 on success, or any error that glbCreateShaderWithSourceFile would return 
+ * @returns 0 on success, or any error that glbCreateShaderWithSourceFile would return
  */
-int glbProgramAttachNewShaderSourceFile (GLBProgram *program, 
+int glbProgramAttachNewShaderSourceFile (GLBProgram *program,
                                            const char *filenm,
                                            enum GLBShaderStage stage)
 {
-    int errcode = GLB_NO_ERROR;
+    int errcode = GLB_SUCCESS;
 
     GLBShader *shader = glbCreateShaderWithSourceFile(filenm, stage, &errcode);
     GLB_ASSERT(!errcode, errcode, ERROR_SOURCE);
@@ -356,7 +329,7 @@ ERROR_SOURCE:
  * @param stage the shader stage to attach the new shader to
  * @returns 0 //TODO
  */
-int glbProgramAttachNewShaderSource (GLBProgram *program, 
+int glbProgramAttachNewShaderSource (GLBProgram *program,
                                      int len, const char *mem, enum GLBShaderStage stage)
 {
     int errcode = 0;
@@ -369,7 +342,7 @@ int glbProgramAttachNewShaderSource (GLBProgram *program,
 /**
  * Attaches a shader to be used by program. The program will also retain the
  * shader in the process (though glbRetainShader). Any shader currently attached
- * to the shader stage in which 'shader' replaces will be detached 
+ * to the shader stage in which 'shader' replaces will be detached
  * (as through a call to glbProgramDetachShaderStage)
  * @param program, the program to attach to
  * @param shader, a pointer to the shader to attach.
@@ -444,136 +417,142 @@ int glbProgramDetachShaderStage (GLBProgram *program, enum GLBShaderStage stage)
 
 /*{{{ Bindables */
 
-static int glbProgramUniformByLocation(GLBProgram *program, int loc, int size, int type, 
+static int glbProgramUniformIdent(GLBProgram *program, GLBProgramIdent *ident,
                                        int transposed, int sz, void *val)
 {
     int errcode = 0;
     int n=1;
-    if(glbTypeSizeof(type)) //TODO: workaround to avoid FPEXCEPT for Opaque types without size
-    n = sz / glbTypeSizeof(type);
 
-    if(n > size)
+    if(ident->location < 0)
+    {
+        return GLB_INVALID_ARGUMENT;
+    }
+
+    if(glbTypeSizeof(ident->type)) //TODO: workaround to avoid FPEXCEPT for Opaque types without size
+    n = sz / glbTypeSizeof(ident->type);
+
+    if(n > ident->size)
     {
         return GLB_INVALID_ARGUMENT;
     }
 
     glUseProgram(program->globj);
-    if(glbTypeIsMatrix(type))
+    if(glbTypeIsMatrix(ident->type))
     {
-        switch(type)
+        switch(ident->type)
         {
             case GLB_MAT2:
-                glUniformMatrix2fv(loc, n, transposed, val);
+                glUniformMatrix2fv(ident->location, n, transposed, val);
                 break;
             case GLB_MAT3:
-                glUniformMatrix3fv(loc, n, transposed, val);
+                glUniformMatrix3fv(ident->location, n, transposed, val);
                 break;
             case GLB_MAT4:
-                glUniformMatrix4fv(loc, n, transposed, val);
+                glUniformMatrix4fv(ident->location, n, transposed, val);
                 break;
             case GLB_MAT2x3:
-                glUniformMatrix2x3fv(loc, n, transposed, val);
+                glUniformMatrix2x3fv(ident->location, n, transposed, val);
                 break;
             case GLB_MAT2x4:
-                glUniformMatrix2x4fv(loc, n, transposed, val);
+                glUniformMatrix2x4fv(ident->location, n, transposed, val);
                 break;
             case GLB_MAT3x2:
-                glUniformMatrix3x2fv(loc, n, transposed, val);
+                glUniformMatrix3x2fv(ident->location, n, transposed, val);
                 break;
             case GLB_MAT3x4:
-                glUniformMatrix3x4fv(loc, n, transposed, val);
+                glUniformMatrix3x4fv(ident->location, n, transposed, val);
                 break;
             case GLB_MAT4x2:
-                glUniformMatrix4x2fv(loc, n, transposed, val);
+                glUniformMatrix4x2fv(ident->location, n, transposed, val);
                 break;
             case GLB_MAT4x3:
-                glUniformMatrix4x3fv(loc, n, transposed, val);
+                glUniformMatrix4x3fv(ident->location, n, transposed, val);
                 break;
             default:
                 goto ERROR;
         }
-    } else if (glbTypeIsScalar(type))
+    } else if (glbTypeIsScalar(ident->type))
     {
-        switch(glbTypeLength(type))
+        switch(glbTypeLength(ident->type))
         {
             case 1: // scalar
-                if(glbTypeIsFloat(type))
+                if(glbTypeIsFloat(ident->type))
                 {
-                    glUniform1fv(loc, n, val);
-                } else if(glbTypeIsUnsigned(type)) // unsigned int
+                    glUniform1fv(ident->location, n, val);
+                } else if(glbTypeIsUnsigned(ident->type)) // unsigned int
                 {
-                    glUniform1uiv(loc, n, val);
-                } else if(glbTypeIsInt(type))// signed int
+                    glUniform1uiv(ident->location, n, val);
+                } else if(glbTypeIsInt(ident->type))// signed int
                 {
-                    glUniform1iv(loc, n, val);
-                } else if(glbTypeIsDouble(type))
+                    glUniform1iv(ident->location, n, val);
+                } else if(glbTypeIsDouble(ident->type))
                 {
-                    //glUniform1dv(loc, n, val);
+                    //glUniform1dv(ident->location, n, val);
                     return GLB_GL_TOO_OLD;
                 }
                 break;
             case 2:
-                if(glbTypeIsFloat(type))
+                if(glbTypeIsFloat(ident->type))
                 {
-                    glUniform2fv(loc, n, val);
-                } else if(glbTypeIsUnsigned(type)) // unsigned int
+                    glUniform2fv(ident->location, n, val);
+                } else if(glbTypeIsUnsigned(ident->type)) // unsigned int
                 {
-                    glUniform2uiv(loc, n, val);
-                } else if(glbTypeIsInt(type)) // signed int
+                    glUniform2uiv(ident->location, n, val);
+                } else if(glbTypeIsInt(ident->type)) // signed int
                 {
-                    glUniform2iv(loc, n, val);
-                } else if(glbTypeIsDouble(type))
+                    glUniform2iv(ident->location, n, val);
+                } else if(glbTypeIsDouble(ident->type))
                 {
-                    //glUniform2dv(loc, n, val);
+                    //glUniform2dv(ident->location, n, val);
                     return GLB_GL_TOO_OLD;
                 }
                 break;
             case 3:
-                if(glbTypeIsFloat(type))
+                if(glbTypeIsFloat(ident->type))
                 {
-                    glUniform3fv(loc, n, val);
-                } else if(glbTypeIsUnsigned(type)) // unsigned int
+                    glUniform3fv(ident->location, n, val);
+                } else if(glbTypeIsUnsigned(ident->type)) // unsigned int
                 {
-                    glUniform3uiv(loc, n, val);
-                } else if(glbTypeIsInt(type)) // signed int
+                    glUniform3uiv(ident->location, n, val);
+                } else if(glbTypeIsInt(ident->type)) // signed int
                 {
-                    glUniform3iv(loc, n, val);
-                } else if(glbTypeIsDouble(type))
+                    glUniform3iv(ident->location, n, val);
+                } else if(glbTypeIsDouble(ident->type))
                 {
-                    //glUniform3dv(loc, n, val);
+                    //glUniform3dv(ident->location, n, val);
                     return GLB_GL_TOO_OLD;
                 }
                 break;
             case 4:
-                if(glbTypeIsFloat(type))
+                if(glbTypeIsFloat(ident->type))
                 {
-                    glUniform4fv(loc, n, val);
-                } else if(glbTypeIsUnsigned(type)) // unsigned int
+                    glUniform4fv(ident->location, n, val);
+                } else if(glbTypeIsUnsigned(ident->type)) // unsigned int
                 {
-                    glUniform4uiv(loc, n, val);
-                } else if(glbTypeIsInt(type)) // signed int
+                    glUniform4uiv(ident->location, n, val);
+                } else if(glbTypeIsInt(ident->type)) // signed int
                 {
-                    glUniform4iv(loc, n, val);
-                } else if(glbTypeIsDouble(type))
+                    glUniform4iv(ident->location, n, val);
+                } else if(glbTypeIsDouble(ident->type))
                 {
-                    //glUniform4dv(loc, n, val);
+                    //glUniform4dv(ident->location, n, val);
                     return GLB_GL_TOO_OLD;
                 }
                 break;
             default:
                 goto ERROR;
         }
-    } else if(glbTypeIsOpaque(type))
+    } else if(glbTypeIsOpaque(ident->type))
     {
         GLB_ASSERT(sz == sizeof(GLBTexture), GLB_INVALID_ARGUMENT, ERROR);
-        switch(type)
+        switch(ident->type)
         {
             case GLB_SAMPLER_1D:
             case GLB_SAMPLER_2D:
                 //TODO: bind textures to shader
-                glActiveTexture(GL_TEXTURE0); //TODO: texture unit allocation
+                glActiveTexture(GL_TEXTURE0 + ident->order);
                 glBindTexture(((GLBTexture*)val)->target, ((GLBTexture*)val)->globj);
-                glUniform1i(loc, 0); //TODO: texture unit alloc
+                glUniform1i(ident->location, ident->order);
                 break;
             default:
                 return GLB_UNIMPLEMENTED;
@@ -607,42 +586,64 @@ int glbProgramUniform (GLBProgram *program, int shader, int i, int sz, void *val
         }
     }
 
-    if(program->uniforms[i]->location < 0)
-    {
-        return GLB_INVALID_ARGUMENT;
-    }
-
-    return glbProgramUniformByLocation(program, program->uniforms[i]->location,
-                                program->uniforms[i]->size, 
-                                program->uniforms[i]->type, true, sz, val);
+    return glbProgramUniformIdent(program, program->uniforms[i], true, sz, val);
 }
 
 int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *texture)
 {
-    //TODO: treat i as index of texture instead of uniform??
-    return glbProgramUniform(program, shader, i, sizeof(GLBTexture), texture);
+    glbProgramClean(program);
+
+    int shaderid = glbProgramShaderIndex(shader);
+
+    /*
+     * adjusts the suplied index 'i' from the Opaque ordering to the normal 
+     * uniform ordering. eg. if sampler2D tex is the first sampler2D defined, but 
+     * the third uniform defined (in the GLSL shader), this will transform i from 1 -> 3
+     */
+    int j;
+    int trans = 0;
+    for(j = 0; j < i; j++)
+    {
+        if(!glbTypeIsOpaque(program->shaders[shaderid]->uniforms[j]->type))
+        {
+            trans++;
+        }
+    }
+    i += trans;
+
+    // i now refers to the correct index in the uniform array
+
+    for(j = 0; j < shaderid; j++)
+    {
+        if(program->shaders[j])
+        {
+            i += program->shaders[j]->nuniforms; 
+        }
+    }
+
+
+    //TODO: index i by Opaque types index instead of Uniform indices
+    return glbProgramUniformIdent(program, program->uniforms[i], true, sizeof(GLBTexture), texture);
 }
 
 int glbProgramNamedUniform (GLBProgram *program, char *name, int sz, void *val)
 {
     GLuint index;
-    int size;
-    GLenum type;
-    int location;
+    GLBProgramIdent ident;
 
     glbProgramClean(program);
 
     //get location
-    location = glGetUniformLocation(program->globj, name);
+    ident.location = glGetUniformLocation(program->globj, name);
 
     //get index
     glGetUniformIndices(program->globj, 1, (const GLchar* const*)&name, &index);
 
     //get type
-    glGetActiveUniform(program->globj, index, 0, NULL, &size, &type, NULL);
+    glGetActiveUniform(program->globj, index, 0, NULL, &ident.size, &ident.type, NULL);
 
     //TODO: column major switch?
-    glbProgramUniformByLocation(program, location, size, type, true, sz, val);
+    glbProgramUniformIdent(program, &ident, true, sz, val);
 
     return 0; //TODO: error detection
 }
@@ -672,7 +673,7 @@ int glbProgramUniformBuffer (GLBProgram *program, char *blocknm, GLBBuffer *buff
     return GLB_UNIMPLEMENTED;
 }
 
-int glbProgramUniformBufferRange (GLBProgram *program, char *blocknm, 
+int glbProgramUniformBufferRange (GLBProgram *program, char *blocknm,
                                   int offset, int size, GLBBuffer *buffer)
 {
     glbProgramClean(program);
@@ -720,7 +721,7 @@ int glbProgramDrawRange (GLBProgram *program, GLBBuffer *array, int offset, int 
     return glbProgramDrawIndexedRange(program, array, NULL, offset, count);
 }
 
-int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array, 
+int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
                                 GLBBuffer *index, int offset, int count)
 {
     int i;
@@ -751,7 +752,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
         if(program->textures[i])
         {
             GLBTexture *tex = program->textures[i]->bind;
-            glActiveTexture(GL_TEXTURE0 + i); 
+            glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(tex->target, tex->globj);
         }
     }
@@ -764,7 +765,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
         {
             GLBVertexLayout *layout = &array->vdata.layout[i];
             glEnableVertexAttribArray(i);
-            glVertexAttribPointer(i, layout->size, layout->type, layout->normalized, 
+            glVertexAttribPointer(i, layout->size, layout->type, layout->normalized,
                                   layout->stride, (void*) layout->offset);
         }
     } else // this assumes each attrib in the shader is sequential and (usually) float type
@@ -774,19 +775,19 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
         {
             int attrib_type = program->inputs[i]->type;
             int attrib_sz = glbTypeSizeof(attrib_type);
-            glEnableVertexAttribArray(i); 
+            glEnableVertexAttribArray(i);
             //TODO: change float
             if(program->inputs[i]->isInt)
             {
-                glVertexAttribIPointer(program->inputs[i]->location, 
+                glVertexAttribIPointer(program->inputs[i]->location,
                                        attrib_sz, GL_FLOAT,
-                                       array->sz / array->nmemb, 
+                                       array->sz / array->nmemb,
                                        (void*) attrib_offset);
             } else //expected
             {
-                glVertexAttribPointer(program->inputs[i]->location, 
-                                      attrib_sz, GL_FLOAT, GL_FALSE, 
-                                      array->sz / array->nmemb, 
+                glVertexAttribPointer(program->inputs[i]->location,
+                                      attrib_sz, GL_FLOAT, GL_FALSE,
+                                      array->sz / array->nmemb,
                                       (void*) attrib_offset);
             }
             attrib_offset += attrib_sz;
@@ -796,9 +797,9 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
     if(index)
     {
         glDrawElements(mode, index->idata.count, index->idata.type, 0);
-    } else 
+    } else
     {
-        glDrawArrays(mode, offset, count); 
+        glDrawArrays(mode, offset, count);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -27,24 +27,24 @@ enum GLBBufferUsage
     GLB_DYNAMIC_COPY = GL_DYNAMIC_COPY,
 };
 
-GLBBuffer* glbCreateBuffer   (size_t nmemb, size_t sz, 
+GLBBuffer* glbCreateBuffer   (size_t nmemb, size_t sz,
                               const void *const ptr, int usage, int *errcode_ret);
-GLBBuffer* glbCreateIndexBuffer  (size_t nmemb, size_t sz, const void * const ptr, 
+GLBBuffer* glbCreateIndexBuffer  (size_t nmemb, size_t sz, const void * const ptr,
                                   int type, int usage, int *errcode_ret);
-GLBBuffer* glbCreateVertexBuffer (size_t nmemb, size_t sz, const void *const ptr, int ndesc, 
-                                  struct GLBVertexLayout *desc, 
+GLBBuffer* glbCreateVertexBuffer (size_t nmemb, size_t sz, const void *const ptr, int ndesc,
+                                  struct GLBVertexLayout *desc,
                                   int usage, int *errcode_ret);
 void       glbDeleteBuffer   (GLBBuffer *buffer);
 void       glbRetainBuffer   (GLBBuffer *buffer);
 void       glbReleaseBuffer  (GLBBuffer *buffer);
 int        glbWriteBuffer    (GLBBuffer *buffer, size_t offset, size_t sz, void *ptr);
 int        glbReadBuffer     (GLBBuffer *buffer, size_t offset, size_t sz, void *ptr);
-int        glbFillBuffer     (GLBBuffer *buffer, 
+int        glbFillBuffer     (GLBBuffer *buffer,
                                const void *pattern,
                                size_t pattern_size,
                                size_t offset,
                                size_t size);
-int        glbCopyBuffer     (GLBBuffer *src, 
+int        glbCopyBuffer     (GLBBuffer *src,
                                GLBBuffer *dst,
                                size_t src_offset,
                                size_t dst_offset,

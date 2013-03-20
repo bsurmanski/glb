@@ -64,7 +64,8 @@ int         glbProgramLayout              (GLBProgram *program,
 
 int         glbProgramInputLayout         (GLBProgram *program, int n, char **inputs);
 int         glbProgramOutputLayout        (GLBProgram *program, int n, char **outputs);
-int         glbProgramOutputs             (GLBProgram *program, int n, GLBTexture **outputs);
+//int         glbProgramOutputs             (GLBProgram *program, int n, GLBTexture **outputs);
+//int         glbProgramOutput              (GLBProgram *program, GLBFramebuffer *output);
 
 //Draw
 

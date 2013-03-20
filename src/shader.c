@@ -135,8 +135,8 @@ void glbShaderMetadata(GLBShader *shader, int max, const char *str)
             shader->inputs[shader->ninputs] = get_ident(max, str);
             shader->ninputs++;
 #ifdef DEBUG/*{{{*/
-            printf("input found: %s : %s\n", 
-                    shader->inputs[shader->ninputs-1]->name, 
+            printf("input found: %s : %s\n",
+                    shader->inputs[shader->ninputs-1]->name,
                     glbTypeString(shader->inputs[shader->ninputs-1]->type));
 #endif/*}}}*/
         }
@@ -147,21 +147,26 @@ void glbShaderMetadata(GLBShader *shader, int max, const char *str)
             shader->outputs[shader->noutputs] = get_ident(max, str);
             shader->noutputs++;
 #ifdef DEBUG/*{{{*/
-            printf("output found: %s : %s\n", 
-                    shader->outputs[shader->noutputs-1]->name, 
+            printf("output found: %s : %s\n",
+                    shader->outputs[shader->noutputs-1]->name,
                     glbTypeString(shader->outputs[shader->noutputs-1]->type));
 #endif/*}}}*/
         }
 
-        //parse uniforms 
+        //parse uniforms
         //TODO: parse arrays
         if(!strncmp(str, "uniform", 7) && isspace(str[7]) && (str == start || isspace(str[-1])))
         {
             shader->uniforms[shader->nuniforms] = get_ident(max, str);
+            if(glbTypeIsOpaque(shader->uniforms[shader->nuniforms]->type))
+            {
+                shader->nopaques++;
+            }
             shader->nuniforms++;
+
 #ifdef DEBUG/*{{{*/
-            printf("uniform found: %s : %s\n", 
-                    shader->uniforms[shader->nuniforms-1]->name, 
+            printf("uniform found: %s : %s\n",
+                    shader->uniforms[shader->nuniforms-1]->name,
                     glbTypeString(shader->uniforms[shader->nuniforms-1]->type));
 #endif/*}}}*/
         }
@@ -199,7 +204,7 @@ static char *glbFileToString(const char *filenm, int *out_sz, int *out_err)
     }
 
     return filestr;
-    
+
 ERROR_READ:
     free(filestr);
     filestr = NULL;
@@ -215,10 +220,10 @@ ERROR_FOPEN:
 }
 
 GLBShader *glbCreateShaderWithSourceFile(const char *filenm,
-                                         enum GLBShaderStage stage, 
+                                         enum GLBShaderStage stage,
                                          int *errcode_ret)
 {
-    int errcode = 0;
+    int errcode;
     GLBShader *shader = NULL;
 
     //TODO: assert stage is allowed in current GL version
@@ -230,14 +235,13 @@ GLBShader *glbCreateShaderWithSourceFile(const char *filenm,
 
     shader = glbCreateShaderWithSource(-1, filestr, stage, errcode_ret);
     free(filestr);
+
+    GLB_SET_ERROR(GLB_SUCCESS);
     return shader;
 
 ERROR_READ:
 ERROR:
-    if(errcode_ret)
-    {
-        *errcode_ret = errcode;
-    }
+    GLB_SET_ERROR(errcode);
 
 #ifdef DEBUG
     printf("GLBCreateShader Error: %s\n", glbErrorString(errcode));
@@ -250,9 +254,9 @@ ERROR:
 /**
  * if 'len' is less than zero, string is NULL terminated
  */
-GLBShader *glbCreateShaderWithSource(int len, 
-                                     const char *mem, 
-                                     enum GLBShaderStage stage, 
+GLBShader *glbCreateShaderWithSource(int len,
+                                     const char *mem,
+                                     enum GLBShaderStage stage,
                                      int *errcode_ret)
 {
     int errcode = 0;
@@ -262,18 +266,18 @@ GLBShader *glbCreateShaderWithSource(int len,
     int minor;
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
-    GLB_ASSERT(stage != GLB_VERTEX_SHADER || 
+    GLB_ASSERT(stage != GLB_VERTEX_SHADER ||
               (major > 2 || (major == 2 && minor >= 1)), GLB_GL_TOO_OLD, ERROR);
     GLB_ASSERT(stage != GLB_TESS_CONTROL_SHADER || (major >= 4), GLB_GL_TOO_OLD, ERROR);
     GLB_ASSERT(stage != GLB_TESS_EVALUATION_SHADER || (major >= 4), GLB_GL_TOO_OLD, ERROR);
-    GLB_ASSERT(stage != GLB_GEOMETRY_SHADER || 
+    GLB_ASSERT(stage != GLB_GEOMETRY_SHADER ||
               (major > 3 || (major == 3 && minor >= 1)), GLB_GL_TOO_OLD, ERROR);
-    GLB_ASSERT(stage != GLB_FRAGMENT_SHADER || 
+    GLB_ASSERT(stage != GLB_FRAGMENT_SHADER ||
               (major > 2 || (major == 2 && minor >= 1)), GLB_GL_TOO_OLD, ERROR);
     GLB_ASSERT(stage == GLB_VERTEX_SHADER || stage == GLB_FRAGMENT_SHADER ||
                stage == GLB_GEOMETRY_SHADER || stage == GLB_TESS_CONTROL_SHADER ||
                stage == GLB_TESS_EVALUATION_SHADER, GLB_INVALID_ARGUMENT, ERROR);
-    
+
     GLB_ASSERT(mem, GLB_INVALID_ARGUMENT, ERROR);
 
     shader = malloc(sizeof(GLBShader));
@@ -313,8 +317,11 @@ GLBShader *glbCreateShaderWithSource(int len,
     shader->ninputs = 0;
     shader->noutputs = 0;
     shader->nuniforms = 0;
+    shader->nopaques = 0;
 
     glbShaderMetadata(shader, len, mem);
+
+    GLB_SET_ERROR(GLB_SUCCESS);
 
     return shader;
 
@@ -325,10 +332,7 @@ ERROR_CREATE:
     free(shader);
 ERROR_ALLOC:
 ERROR:
-    if(errcode_ret)
-    {
-        *errcode_ret = errcode;
-    }
+    GLB_SET_ERROR(errcode);
 
 #ifdef DEBUG
     printf("GLBCreateShader Error: %s\n", glbErrorString(errcode));

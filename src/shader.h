@@ -24,13 +24,13 @@ enum GLBShaderStage
 };
 
 GLBShader* glbCreateShaderWithSourceFile (  const char *filenm,
-                                           enum GLBShaderStage stage, 
+                                           enum GLBShaderStage stage,
                                            int *errcode_ret);
 
 GLBShader* glbCreateShaderWithSource (  int len,
                                        const char *mem,
-                                       enum GLBShaderStage stage, 
-                                       int *errcode_ret); 
+                                       enum GLBShaderStage stage,
+                                       int *errcode_ret);
 
 void        glbDeleteShader       (GLBShader *shader);
 void        glbRetainShader       (GLBShader *shader);

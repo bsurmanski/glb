@@ -22,7 +22,7 @@ static int guessType(size_t sz)
             return GLB_USHORT;
         case 4:
             return GLB_UINT;
-        default: 
+        default:
             return 0;
     }
 }
@@ -46,13 +46,11 @@ GLBBuffer* glbCreateBuffer (size_t nmemb, size_t sz, const void *const ptr, int 
     buffer->idata.type = guessType(sz / nmemb); // guess index buffer info
     buffer->idata.count = nmemb; // guess index buffer info
 
+    GLB_SET_ERROR(GLB_SUCCESS);
     return buffer;
 
 ERROR_BUFFER:
-    if(errcode_ret)
-    {
-        *errcode_ret = errcode;
-    }
+    GLB_SET_ERROR(errcode);
 
 #ifdef DEBUG
     printf("GLBCreateBuffer Error: %s\n", glbErrorString(errcode));
@@ -61,7 +59,7 @@ ERROR_BUFFER:
     return NULL;
 }
 
-GLBBuffer* glbCreateIndexBuffer  (size_t nmemb, size_t sz, const void *const ptr, int type, 
+GLBBuffer* glbCreateIndexBuffer  (size_t nmemb, size_t sz, const void *const ptr, int type,
                                   int usage, int *errcode_ret)
 {
     GLBBuffer *buf = glbCreateBuffer(nmemb, sz, ptr, usage, errcode_ret);
@@ -76,8 +74,8 @@ GLBBuffer* glbCreateIndexBuffer  (size_t nmemb, size_t sz, const void *const ptr
     return buf;
 }
 
-GLBBuffer* glbCreateVertexBuffer (size_t nmemb, size_t sz, const void *const ptr, 
-                                  int ndesc, GLBVertexLayout *desc, 
+GLBBuffer* glbCreateVertexBuffer (size_t nmemb, size_t sz, const void *const ptr,
+                                  int ndesc, GLBVertexLayout *desc,
                                   int usage, int *errcode_ret)
 {
     GLBBuffer *buf = glbCreateBuffer(nmemb, sz, ptr, usage, errcode_ret);
@@ -99,7 +97,7 @@ void glbDeleteBuffer (GLBBuffer *buffer)
 
 void glbRetainBuffer (GLBBuffer *buffer)
 {
-    buffer->refcount++; 
+    buffer->refcount++;
 }
 
 void glbReleaseBuffer(GLBBuffer *buffer)
@@ -123,7 +121,7 @@ int glbReadBuffer (GLBBuffer *buffer, size_t offset, size_t sz, void *ptr)
     return 0;
 }
 
-int glbFillBuffer (GLBBuffer *buffer, 
+int glbFillBuffer (GLBBuffer *buffer,
                     const void *pattern,
                     size_t pattern_size,
                     size_t offset,
@@ -134,9 +132,9 @@ int glbFillBuffer (GLBBuffer *buffer,
     int try = 3; // try to fill at most this many times if it fails
     while (!complete && try--) // should only run once unless theres a write error
     {
-        uint8_t *mapped = glbMapBuffer(buffer, GLB_WRITE_ONLY);    
+        uint8_t *mapped = glbMapBuffer(buffer, GLB_WRITE_ONLY);
         if(!mapped) return GLB_UNKNOWN_ERROR;
-        
+
         int i;
         for(i = 0; i < size / pattern_size; i++)
         {
@@ -145,10 +143,10 @@ int glbFillBuffer (GLBBuffer *buffer,
         complete = glbUnmapBuffer(buffer);
     }
 
-    return complete ? GLB_NO_ERROR : GLB_WRITE_ERROR;
+    return complete ? GLB_SUCCESS : GLB_WRITE_ERROR;
 }
 
-int glbCopyBuffer (GLBBuffer *src, 
+int glbCopyBuffer (GLBBuffer *src,
                     GLBBuffer *dst,
                     size_t src_offset,
                     size_t dst_offset,
@@ -203,7 +201,7 @@ int glbVertexBufferFormat (GLBBuffer *buffer, int ndesc, GLBVertexLayout *desc)
     int i;
     for(i = 0; i < ndesc; i++)
     {
-        if(desc[i].size > 4 || 
+        if(desc[i].size > 4 ||
            !glbTypeIsScalar(desc[i].type))
         {
             return GLB_INVALID_ARGUMENT;
@@ -221,7 +219,7 @@ int glbIndexBufferFormat (GLBBuffer *buffer, int offset, int count, int type)
     // must be scalar and not float
     if(!buffer || !glbTypeIsScalar(type) || glbTypeIsFloat(type))
     {
-        return GLB_INVALID_ARGUMENT; 
+        return GLB_INVALID_ARGUMENT;
     }
 
     buffer->idata.count = count;

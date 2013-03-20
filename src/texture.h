@@ -31,7 +31,7 @@ enum GLBImageFormat
     GLB_RGBA_INT        = 7,
 };
 
-GLBTexture*  glbCreateTexture  (enum GLBAccess flags, 
+GLBTexture*  glbCreateTexture  (enum GLBAccess flags,
                                 enum GLBImageFormat format,
                                 int x,
                                 int y,
@@ -39,7 +39,7 @@ GLBTexture*  glbCreateTexture  (enum GLBAccess flags,
                                 void *ptr,
                                 int *errcode_ret);
 
-GLBTexture*  glbCreateTextureWithTGA (enum GLBAccess flags, 
+GLBTexture*  glbCreateTextureWithTGA (enum GLBAccess flags,
                                       const char *filenm,
                                       int *errcode_ret);
 
@@ -52,11 +52,11 @@ int          glbTextureSampler (GLBTexture *texture, GLBSampler *sampler);
 int          glbFillTexture    (GLBTexture *texture, int level,
                                 int *origin, int *region, void *fill_color);
 
-int          glbWriteTexture   (GLBTexture *texture, 
-                                int level, int *origin, 
+int          glbWriteTexture   (GLBTexture *texture,
+                                int level, int *origin,
                                 int *region, int size, void *ptr);
 
-int          glbReadTexture    (GLBTexture *texture, int level, int *origin, 
+int          glbReadTexture    (GLBTexture *texture, int level, int *origin,
                                 int *region, int size, void *ptr);
 
 #endif

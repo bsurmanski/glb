@@ -25,13 +25,12 @@ GLBSampler* glbCreateSampler (int *errcode_ret)
     sampler->wrap_r = GLB_REPEAT;
     sampler->compare_mode = GLB_NONE;
     sampler->compare_func = GLB_LEQUAL;
+
+    GLB_SET_ERROR(GLB_SUCCESS);
     return sampler;
-    
+
 ERROR:
-    if(errcode_ret)
-    {
-        *errcode_ret = errcode;
-    }
+    GLB_SET_ERROR(errcode);
     return NULL;
 }
 
@@ -42,7 +41,7 @@ void glbDeleteSampler (GLBSampler *sampler)
 
 void glbRetainSampler (GLBSampler *sampler)
 {
-    sampler->refcount++; 
+    sampler->refcount++;
 }
 
 void glbReleaseSampler(GLBSampler *sampler)
@@ -66,9 +65,9 @@ void glbSetSamplerLOD    (GLBSampler *sampler, float minlod, float maxlod)
     sampler->maxlod = maxlod;
 }
 
-void glbSetSamplerWrap   (GLBSampler *sampler, 
-                          enum GLBSamplerWrap s, 
-                          enum GLBSamplerWrap t, 
+void glbSetSamplerWrap   (GLBSampler *sampler,
+                          enum GLBSamplerWrap s,
+                          enum GLBSamplerWrap t,
                           enum GLBSamplerWrap r)
 {
     sampler->wrap_s = s;
@@ -76,8 +75,8 @@ void glbSetSamplerWrap   (GLBSampler *sampler,
     sampler->wrap_r = r;
 }
 
-void glbSetSamplerCompare(GLBSampler *sampler, 
-                          enum GLBSamplerCompareMode m, 
+void glbSetSamplerCompare(GLBSampler *sampler,
+                          enum GLBSamplerCompareMode m,
                           enum GLBSamplerCompareFunc f)
 {
     sampler->compare_mode = m;
