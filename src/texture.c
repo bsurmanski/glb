@@ -16,6 +16,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @private
+ * Represents the formatting of a GL texture object
+ */
 struct GLBTextureFormat
 {
     uint8_t depth;

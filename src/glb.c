@@ -30,6 +30,7 @@
 
 #define MIN(a,b) ((a) > (b) ? (b) : (a))
 
+///@private
 struct TypeAssociation
 {
     const char *str;

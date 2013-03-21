@@ -16,16 +16,6 @@
 
 #define MIN(a,b) ((a) > (b) ? (b) : (a))
 
-/**
- * linked list of shader identifiers.
- */
-struct GLBShaderIdentList
-{
-    struct GLBShaderIdent *ident[6];
-    struct GLBShaderIdentList *prev;
-    struct GLBShaderIdentList *next;
-};
-
 /*{{{ Metadata Parsing*/
 /**
  * finds the last occurance of any character in accept, searching from the end of the string
@@ -345,6 +335,25 @@ ERROR:
 
 void glbDeleteShader (GLBShader *shader)
 {
+    int i;
+    for(i = 0; i < shader->nuniforms; i++)
+    {
+        free(shader->uniforms[i]->name);
+        free(shader->uniforms[i]);
+    }
+
+    for(i = 0; i < shader->ninputs; i++)
+    {
+        free(shader->inputs[i]->name);
+        free(shader->inputs[i]);
+    }
+
+    for(i = 0; i < shader->noutputs; i++)
+    {
+        free(shader->outputs[i]->name);
+        free(shader->outputs[i]);
+    }
+
     glDeleteShader(shader->globj);
 }
 

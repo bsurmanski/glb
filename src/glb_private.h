@@ -35,12 +35,14 @@
 
 /*{{{ Buffer*/
 
+///@private
 struct GLBVBufferData
 {
     int count;
     struct GLBVertexLayout *layout;
 };
 
+///@private
 struct GLBIBufferData
 {
     int count;  ///< number of vertex indices
@@ -74,6 +76,7 @@ struct GLBFramebuffer
 
 /*{{{ Shader*/
 /**
+ * @private
  * single identifier in a shader program. An identifier represents some sort of
  * variable that is visible externally to OpenGL. This can be an input, output,
  * uniform, sampler, etc.
@@ -133,12 +136,14 @@ struct GLBTexture
 };/*}}}*/
 
 /*{{{ Program*/
+///@private
 typedef struct GLBProgramOption
 {
     int tmp;
     //TODO: options
 } GLBProgramOption;
 
+///@private
 typedef struct GLBProgramOptions
 {
    int noptions;
@@ -146,6 +151,7 @@ typedef struct GLBProgramOptions
    struct GLBProgramOptions *options;
 } GLBProgramOptions;
 
+///@private
 typedef struct GLBProgramIdent
 {
     GLenum type;

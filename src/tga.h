@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+///@private
 typedef struct glbTGA_header {
     uint8_t id_len;
     uint8_t cmap_type;

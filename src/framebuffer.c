@@ -37,6 +37,21 @@ ERROR:
 
 void glbDeleteFramebuffer(GLBFramebuffer *framebuffer)
 {
+    if(!framebuffer) return;
+
+    int i;
+    for(i = 0; i < framebuffer->ncolors; i++)
+    {
+        glbReleaseTexture(framebuffer->colors[i]);
+    }
+
+    glbReleaseTexture(framebuffer->depth);
+
+    if(framebuffer->depth != framebuffer->stencil)
+    {
+        glbReleaseTexture(framebuffer->stencil);
+    }
+
     free(framebuffer);
 }
 
@@ -61,7 +76,7 @@ void glbReleaseFramebuffer(GLBFramebuffer *framebuffer)
  * it will be bound to the next availible texture unit. If the texture is a
  * depth texture, it will be bound to the depth unit. if the texture is stencil
  * formatted, it will be bound to the stencil unit. If the texture is depth-stencil
- * formatted, it will be bound to both the depth and stencil units. 
+ * formatted, it will be bound to both the depth and stencil units.
  * If the texture supplied is a color texture and is already bound, this function
  * will have no effect.
  */
@@ -101,7 +116,7 @@ ERROR:
     return errcode;
 }
 
-static int glbFramebufferAttachment(GLBFramebuffer *framebuffer, 
+static int glbFramebufferAttachment(GLBFramebuffer *framebuffer,
                                         GLenum attachment, GLBTexture *texture)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->globj);
@@ -128,8 +143,8 @@ static int glbFramebufferAttachment(GLBFramebuffer *framebuffer,
 }
 
 /**
- * attaches a color texture to the framebuffer at a given texture unit. 
- * The texture format must be one of the following: 
+ * attaches a color texture to the framebuffer at a given texture unit.
+ * The texture format must be one of the following:
  * GLB_RGBA, GLB_RGB, GLB_R_INT, GLB_RG_INT, GLB_RGBA_INT.
  * If a texture is currently bound to the given texture unit, it will be unbound
  * and released.
@@ -172,7 +187,7 @@ int glbFramebufferDepth(GLBFramebuffer *framebuffer, GLBTexture *depth)
 
 /**
  * attaches a stencil texture to the framebuffer. The texture format *must* be GLB_STENCIL
- * or GLB_DEPTH_STENCIL. This action will unbind and release the currently bound stencil 
+ * or GLB_DEPTH_STENCIL. This action will unbind and release the currently bound stencil
  * texture.
  */
 int glbFramebufferStencil(GLBFramebuffer *framebuffer, GLBTexture *stencil)
@@ -209,4 +224,19 @@ int glbFramebufferDepthStencil(GLBFramebuffer *framebuffer, GLBTexture *depth_st
     framebuffer->stencil = depth_stencil;
 
     return glbFramebufferAttachment(framebuffer, GL_DEPTH_STENCIL_ATTACHMENT, depth_stencil);
+}
+
+GLBTexture *glbGetFramebufferColor(GLBFramebuffer *framebuffer, int i)
+{
+    return framebuffer->colors[i];
+}
+
+GLBTexture *glbGetFramebufferDepth(GLBFramebuffer *framebuffer)
+{
+    return framebuffer->depth;
+}
+
+GLBTexture *glbGetFramebufferStencil(GLBFramebuffer *framebuffer)
+{
+    return framebuffer->stencil;
 }

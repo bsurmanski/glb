@@ -242,6 +242,23 @@ void glbDeleteProgram (GLBProgram *program)
             glbReleaseShader(program->shaders[i]);
         }
     }
+
+    for(i = 0; i < program->nuniforms; i++)
+    {
+        free(program->uniforms[i]); //TODO: free texture if attached to 'bind'?
+    }
+
+    for(i = 0; i < program->ninputs; i++)
+    {
+        free(program->inputs[i]);
+    }
+
+    for(i = 0; i < program->noutputs; i++)
+    {
+        free(program->outputs[i]);
+    }
+
+    glbReleaseFramebuffer(program->framebuffer);
     //TODO: delete Identifiers
     glDeleteProgram(program->globj);
     free(program);

@@ -104,6 +104,7 @@ int glbTGA_header_read(FILE *fd, glbTGA_header *h)
     return !glbTGA_header_is_valid(h);
 }
 
+///@private
 struct buffer_t {
     uint32_t current_index;
     uint32_t max;

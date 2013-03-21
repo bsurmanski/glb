@@ -95,6 +95,7 @@ GLBBuffer* glbCreateVertexBuffer (size_t nmemb, size_t sz, const void *const ptr
 
 void glbDeleteBuffer (GLBBuffer *buffer)
 {
+    free(buffer->vdata.layout);
     glDeleteBuffers(1, &buffer->globj);
 }
 
