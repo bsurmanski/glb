@@ -7,7 +7,7 @@
  *
  * @brief Global include file. Programs linking with GLB should include this file and none others
  *
- * @mainpage 
+ * @mainpage
  * GLB
  *
  * GLB is an abstraction layer built upon OpenGL created to reduce the little
@@ -16,7 +16,7 @@
  * There is no new functionality in GLB, but what it does have is easier to learn
  * than OpenGL and is easier to work with. So far the development of GLB has been
  * focused on cleaning up the Shader, Program, Texture, and Buffer interfaces.
- * All GLB calls end up calling OpenGL code to function, so it should be just as 
+ * All GLB calls end up calling OpenGL code to function, so it should be just as
  * portible as OpenGL itself.
  *
  * See the supplied README for more information
@@ -87,6 +87,44 @@ static struct TypeAssociation types[] =
     {"samplerCube", 9, GLB_SAMPLER_CUBE},
     {"samplerCubeShadow", 9, GLB_SAMPLER_CUBE_SHADOW},
     {NULL, 0, 0},
+};
+
+///@private
+struct FeatureAssociation
+{
+    const char *name; ///< feature name string for debugging
+    int feature; ///< feature enumeration value
+    int major; ///< major GL version requirement
+    int minor; ///< minor GL version requirement
+};
+
+static struct FeatureAssociation features[] =
+{
+    // buffer object features
+    {"buffer object", GLB_BUFFER_OBJECT_FEATURE, 2, 1},
+
+    {"array buffer", GLB_ARRAY_BUFFER_FEATURE, 2, 1},
+    {"atomic counter buffer", GLB_ATOMIC_COUNTER_BUFFER_FEATURE, 4, 2},
+    {"copy read buffer", GLB_COPY_READ_BUFFER_FEATURE, 3, 1},
+    {"copy write buffer", GLB_COPY_WRITE_BUFFER_FEATURE, 3, 1},
+    {"draw indirect buffer", GLB_DRAW_INDIRECT_BUFFER_FEATURE, 4, 0},
+    {"dispatch indirect buffer", GLB_DISPATCH_INDIRECT_BUFFER_FEATURE, 4, 3},
+    {"element array buffer", GLB_ELEMENT_ARRAY_BUFFER_FEATURE, 2, 1},
+    {"pixel pack buffer", GLB_PIXEL_PACK_BUFFER_FEATURE, 2, 1},
+    {"pixel unpack buffer", GLB_PIXEL_UNPACK_BUFFER_FEATURE, 2, 1},
+    {"shader storage buffer", GLB_SHADER_STORAGE_BUFFER_FEATURE, 4, 3},
+    {"texture buffer", GLB_TEXTURE_BUFFER_FEATURE, 3, 1},
+    {"transform feedback buffer", GLB_TRANSFORM_FEEDBACK_BUFFER_FEATURE, 3, 1},
+    {"uniform buffer", GLB_UNIFORM_BUFFER_FEATURE, 3, 1},
+
+    // shader object features
+    {"shader object", GLB_SHADER_OBJECT_FEATURE, 2, 1},
+
+    {"vertex shader", GLB_VERTEX_SHADER_FEATURE, 2, 1},
+    {"tesslation control shader", GLB_TESS_CONTROL_SHADER_FEATURE, 4, 0},
+    {"tesslation evaluation shader", GLB_TESS_EVALUATION_SHADER_FEATURE, 4, 0},
+    {"geomtry shader", GLB_GEOMETRY_SHADER_FEATURE, 3, 1},
+    {"fragment shader", GLB_FRAGMENT_SHADER_FEATURE, 2, 1},
 };
 
 /*{{{ Type info*/
@@ -305,7 +343,7 @@ bool glbTypeIsInt(int type)
 {
     return (type == GLB_BYTE || type == GLB_UNSIGNED_BYTE ||
             type == GLB_SHORT || type == GLB_UNSIGNED_SHORT ||
-            type == GLB_INT || type == GLB_UNSIGNED_INT || type == GLB_BOOL || 
+            type == GLB_INT || type == GLB_UNSIGNED_INT || type == GLB_BOOL ||
             type == GLB_IVEC2 || type == GLB_IVEC3 || type == GLB_IVEC4 ||
             type == GLB_UIVEC2 || type == GLB_UIVEC3 || type == GLB_UIVEC4);
 }
@@ -455,6 +493,94 @@ int glbTypeToSigned(int type)
     }
     return type; // if type not signable, return self
 }/*}}}*/
+
+/*{{{ Feature testing*/
+
+struct FeatureAssociation *glbGetFeature(int feature_id)
+{
+    struct FeatureAssociation *feature;
+    switch(feature_id)
+    {
+    // buffer object features
+        case GLB_BUFFER_OBJECT_FEATURE:
+            feature = &features[0];
+            break;
+        case GLB_ARRAY_BUFFER_FEATURE:
+            feature = &features[1];
+            break;
+        case GLB_ATOMIC_COUNTER_BUFFER_FEATURE:
+            feature = &features[2];
+            break;
+        case GLB_COPY_READ_BUFFER_FEATURE:
+            feature = &features[3];
+            break;
+        case GLB_COPY_WRITE_BUFFER_FEATURE:
+            feature = &features[4];
+            break;
+        case GLB_DRAW_INDIRECT_BUFFER_FEATURE:
+            feature = &features[5];
+            break;
+        case GLB_DISPATCH_INDIRECT_BUFFER_FEATURE:
+            feature = &features[6];
+            break;
+        case GLB_ELEMENT_ARRAY_BUFFER_FEATURE:
+            feature = &features[7];
+            break;
+        case GLB_PIXEL_PACK_BUFFER_FEATURE:
+            feature = &features[8];
+            break;
+        case GLB_PIXEL_UNPACK_BUFFER_FEATURE:
+            feature = &features[9];
+            break;
+        case GLB_SHADER_STORAGE_BUFFER_FEATURE:
+            feature = &features[10];
+            break;
+        case GLB_TEXTURE_BUFFER_FEATURE:
+            feature = &features[11];
+            break;
+        case GLB_TRANSFORM_FEEDBACK_BUFFER_FEATURE:
+            feature = &features[12];
+            break;
+        case GLB_UNIFORM_BUFFER_FEATURE:
+            feature = &features[13];
+            break;
+
+        // shader object features
+        case GLB_SHADER_OBJECT_FEATURE:
+            feature = &features[14];
+            break;
+        case GLB_VERTEX_SHADER_FEATURE:
+            feature = &features[15];
+            break;
+        case GLB_TESS_CONTROL_SHADER_FEATURE:
+            feature = &features[16];
+            break;
+        case GLB_TESS_EVALUATION_SHADER_FEATURE:
+            feature = &features[17];
+            break;
+        case GLB_GEOMETRY_SHADER_FEATURE:
+            feature = &features[18];
+            break;
+        case GLB_FRAGMENT_SHADER_FEATURE:
+            feature = &features[19];
+            break;
+        default:
+            feature = NULL;
+    }
+    return feature;
+}
+
+bool glbCanUseFeature(int feature_id)
+{
+    int major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+    struct FeatureAssociation *feature = glbGetFeature(feature_id);
+
+    return (feature && (major > feature->major ||
+           (major == feature->major && minor >= feature->minor)));
+}
+/*}}}*/
 
 /*{{{ Error info*/
 const char *const glbErrorString(int error)

@@ -258,19 +258,19 @@ GLBShader *glbCreateShaderWithSource(int len,
     int minor;
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
-    GLB_ASSERT(stage != GLB_VERTEX_SHADER ||
-              (major > 2 || (major == 2 && minor >= 1)), GLB_GL_TOO_OLD, ERROR);
-    GLB_ASSERT(stage != GLB_TESS_CONTROL_SHADER || (major >= 4), GLB_GL_TOO_OLD, ERROR);
-    GLB_ASSERT(stage != GLB_TESS_EVALUATION_SHADER || (major >= 4), GLB_GL_TOO_OLD, ERROR);
-    GLB_ASSERT(stage != GLB_GEOMETRY_SHADER ||
-              (major > 3 || (major == 3 && minor >= 1)), GLB_GL_TOO_OLD, ERROR);
-    GLB_ASSERT(stage != GLB_FRAGMENT_SHADER ||
-              (major > 2 || (major == 2 && minor >= 1)), GLB_GL_TOO_OLD, ERROR);
-    GLB_ASSERT(stage == GLB_VERTEX_SHADER || stage == GLB_FRAGMENT_SHADER ||
-               stage == GLB_GEOMETRY_SHADER || stage == GLB_TESS_CONTROL_SHADER ||
-               stage == GLB_TESS_EVALUATION_SHADER, GLB_INVALID_ARGUMENT, ERROR);
 
-    GLB_ASSERT(mem, GLB_INVALID_ARGUMENT, ERROR);
+/*{{{ Feature and ARG assertions*/
+    GLB_ASSERT(
+            stage == GLB_VERTEX_SHADER ||
+            stage == GLB_TESS_CONTROL_SHADER ||
+            stage == GLB_TESS_EVALUATION_SHADER ||
+            stage == GLB_GEOMETRY_SHADER ||
+            stage == GLB_FRAGMENT_SHADER,
+            GLB_INVALID_ARGUMENT, ERROR);
+
+    GLB_ASSERT(glbCanUseFeature(stage), GLB_GL_TOO_OLD, ERROR);
+
+    GLB_ASSERT(mem, GLB_INVALID_ARGUMENT, ERROR);/*}}}*/
 
     shader = malloc(sizeof(GLBShader));
     GLB_ASSERT(shader, GLB_OUT_OF_MEMORY, ERROR_ALLOC);

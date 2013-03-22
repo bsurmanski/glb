@@ -199,7 +199,6 @@ GLBProgram *glbCreateProgram (int *errcode_ret)
     program->nuniforms = 0;
 
     program->globj = glCreateProgram();
-    GLB_ASSERT(program, GLB_UNKNOWN_ERROR, ERROR_CREATE);
 
     program->framebuffer = NULL;
     memset(program->shaders, 0, sizeof(void*) * GLB_NPROGRAM_SHADERS);

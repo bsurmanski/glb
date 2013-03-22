@@ -46,8 +46,13 @@ int glbTypeToScalar(int type);
 int glbTypeToUnsigned(int type);
 int glbTypeToSigned(int type);
 
+// features
+bool glbCanUseFeature(int feature);
+
+// errors
 const char *const glbErrorString(int error);
 
+///TODO use draw options
 enum GLBDrawOptions
 {
     GLB_NO_DRAW_OPTIONS = 0,
@@ -61,6 +66,7 @@ enum GLBDrawOptions
     GLB_PROVOKING_VERTEX = 8, // TODO: create enum
 };
 
+///TODO use primative type option
 enum GLBPrimativeTypes
 {
     GLB_POINTS                      = GL_POINTS,
@@ -85,15 +91,16 @@ enum GLBError
     GLB_WRITE_ERROR,
     GLB_OUT_OF_MEMORY,
     GLB_INVALID_ARGUMENT,
-    GLB_COMPILE_ERROR, ///< a GLSL shader failed to compile
-    GLB_UNKNOWN_ERROR,
+    GLB_COMPILE_ERROR, ///< a GLSL shader failed to compile.
+    GLB_UNKNOWN_ERROR, ///< something strange happened
+    GLB_MAP_ERROR, ///< GLB was unable to correctly map or unmap a buffer, due to a GL error
     GLB_UNIMPLEMENTED, ///< a feature is currently not implemented, and may be in the future
     GLB_GL_TOO_OLD, ///< a feature depends on an OpenGL version newer than the one in use
 };
 
 enum GLBScalar
 {
-    GLB_BOOL    = GL_BOOL, //TODO: should this be here? messes with buffer layout?
+    GLB_BOOL    = GL_BOOL,
     GLB_BYTE    = GL_BYTE,
     GLB_SHORT   = GL_SHORT,
     GLB_INT     = GL_INT,
@@ -168,7 +175,7 @@ enum GLBMatrix
     GLB_FLOAT_MAT4x3  = GL_FLOAT_MAT4x3,
 };
 
-//TODO: add all types from GLSL Opaque list
+///TODO: add all opaque types from GLSL to GLBOpaque enum
 enum GLBOpaque
 {
     GLB_SAMPLER_1D = GL_SAMPLER_1D,
@@ -178,6 +185,33 @@ enum GLBOpaque
     GLB_SAMPLER_1D_SHADOW = GL_SAMPLER_1D_SHADOW,
     GLB_SAMPLER_2D_SHADOW = GL_SAMPLER_2D_SHADOW,
     GLB_SAMPLER_CUBE_SHADOW = GL_SAMPLER_CUBE_SHADOW,
+};
+
+enum GLBFeatures
+{
+    // buffer object features
+    GLB_BUFFER_OBJECT_FEATURE,
+    GLB_ARRAY_BUFFER_FEATURE,
+    GLB_ATOMIC_COUNTER_BUFFER_FEATURE,
+    GLB_COPY_READ_BUFFER_FEATURE,
+    GLB_COPY_WRITE_BUFFER_FEATURE,
+    GLB_DRAW_INDIRECT_BUFFER_FEATURE,
+    GLB_DISPATCH_INDIRECT_BUFFER_FEATURE,
+    GLB_ELEMENT_ARRAY_BUFFER_FEATURE,
+    GLB_PIXEL_PACK_BUFFER_FEATURE,
+    GLB_PIXEL_UNPACK_BUFFER_FEATURE,
+    GLB_SHADER_STORAGE_BUFFER_FEATURE,
+    GLB_TEXTURE_BUFFER_FEATURE,
+    GLB_TRANSFORM_FEEDBACK_BUFFER_FEATURE,
+    GLB_UNIFORM_BUFFER_FEATURE,
+
+    // shader object features
+    GLB_SHADER_OBJECT_FEATURE,
+    GLB_VERTEX_SHADER_FEATURE = GLB_VERTEX_SHADER,
+    GLB_TESS_CONTROL_SHADER_FEATURE = GLB_TESS_CONTROL_SHADER,
+    GLB_TESS_EVALUATION_SHADER_FEATURE = GLB_TESS_EVALUATION_SHADER,
+    GLB_GEOMETRY_SHADER_FEATURE = GLB_GEOMETRY_SHADER,
+    GLB_FRAGMENT_SHADER_FEATURE = GLB_FRAGMENT_SHADER,
 };
 
 #endif

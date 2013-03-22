@@ -137,7 +137,7 @@ int glbFillBuffer (GLBBuffer *buffer,
     while (!complete && try--) // should only run once unless theres a write error
     {
         uint8_t *mapped = glbMapBuffer(buffer, GLB_WRITE_ONLY);
-        if(!mapped) return GLB_UNKNOWN_ERROR;
+        if(!mapped) return GLB_MAP_ERROR;
 
         int i;
         for(i = 0; i < size / pattern_size; i++)

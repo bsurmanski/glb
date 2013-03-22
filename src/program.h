@@ -54,7 +54,7 @@ int         glbProgramUniformBufferRange  (GLBProgram *program, char *blocknm,
                                            int offset, int size, GLBBuffer *buffer);
 
 // Layouts
-
+/*
 int         glbProgramUseVertexLayout     (GLBProgram *program, int n, struct GLBVertexLayout *layout);
 
 int         glbProgramLayout              (GLBProgram *program, 
@@ -62,6 +62,7 @@ int         glbProgramLayout              (GLBProgram *program,
 
 int         glbProgramInputLayout         (GLBProgram *program, int n, char **inputs);
 int         glbProgramOutputLayout        (GLBProgram *program, int n, char **outputs);
+*/
 int         glbProgramOutput              (GLBProgram *program, GLBFramebuffer *output);
 
 //Draw
