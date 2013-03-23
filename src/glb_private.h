@@ -97,8 +97,6 @@ struct GLBShader
     int nopaques;   ///< number of opaque types defined (eg sampler2D)
     int ninputs;    ///< number if 'in' definitions in GLSL
     int noutputs;   ///< number of 'out' definitions in GLSL
-    int ntextures;  ///<XXX unused?
-    struct GLBShaderIdent *textures;  ///< XXX (unused?) textures currently bound to the shader
     struct GLBShaderIdent *uniforms[16];    ///< uniforms currently bound to the shader
     struct GLBShaderIdent *inputs[16];      ///< identifiers for inputs
     struct GLBShaderIdent *outputs[16];     ///< identifiers for outputs
@@ -159,7 +157,6 @@ typedef struct GLBProgramIdent
     int size; ///< array size
     int isInt;
     int order; ///< order that GLSL var is defined. For Sampler variables, its also the Texture Unit
-    void *bind; ///< XXX (curently unused(ish?)) used for textures
 } GLBProgramIdent;
 
 struct GLBProgram
@@ -174,7 +171,7 @@ struct GLBProgram
     int noutputs;   ///< number of ouputs in all attached shaders
     struct GLBFramebuffer *framebuffer;
     struct GLBProgramOptions *options;
-    struct GLBProgramIdent *textures[GLB_MAX_TEXTURES];
+    struct GLBTexture *textures[GLB_MAX_TEXTURES]; //currently bound texture units
     struct GLBProgramIdent *uniforms[GLB_MAX_UNIFORMS];
     struct GLBProgramIdent *inputs[GLB_MAX_INPUTS];
     struct GLBProgramIdent *outputs[GLB_MAX_OUTPUTS]; //TODO use a linked list instread

@@ -218,15 +218,18 @@ GLBShader *glbCreateShaderWithSourceFile(const char *filenm,
     int errcode;
     GLBShader *shader = NULL;
 
-    //TODO: assert stage is allowed in current GL version
+#ifdef DEBUG
+    printf("loading shader: %s\n", filenm);
+#endif
 
     GLB_ASSERT(filenm, GLB_INVALID_ARGUMENT, ERROR);
 
     char *filestr = glbFileToString(filenm, NULL, &errcode);
     GLB_ASSERT(filestr,errcode,ERROR_READ);
 
-    shader = glbCreateShaderWithSource(-1, filestr, stage, errcode_ret);
+    shader = glbCreateShaderWithSource(-1, filestr, stage, &errcode);
     free(filestr);
+    GLB_ASSERT(!errcode, errcode, ERROR_READ);
 
     GLB_SET_ERROR(GLB_SUCCESS);
     return shader;

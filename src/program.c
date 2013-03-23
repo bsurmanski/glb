@@ -57,7 +57,9 @@ static int glbProgramClean(GLBProgram *program)
             if(program->shaders[i])
             {
                 glAttachShader(program->globj, program->shaders[i]->globj);
+#ifdef DEBUG
                 /*{{{XXX debug*/ printf("attaching shader %i\n", i);/*}}}*/
+#endif
             }
         }
 
@@ -105,7 +107,6 @@ static int glbProgramClean(GLBProgram *program)
             (*p_ident)->type = (*s_ident)->type;
             (*p_ident)->location = glGetAttribLocation(program->globj, (*s_ident)->name);
             (*p_ident)->isInt = glbTypeIsInt((*p_ident)->type);
-            (*p_ident)->bind = NULL;
             (*p_ident)->order = program->ninputs;
             p_ident++;
             s_ident++;
@@ -120,7 +121,6 @@ static int glbProgramClean(GLBProgram *program)
             (*p_ident)->type = (*s_ident)->type;
             (*p_ident)->location = glGetFragDataLocation(program->globj, (*s_ident)->name);
             (*p_ident)->isInt = glbTypeIsInt((*p_ident)->type);
-            (*p_ident)->bind = NULL;
             (*p_ident)->order = program->noutputs;
             p_ident++;
             s_ident++;
@@ -148,7 +148,6 @@ static int glbProgramClean(GLBProgram *program)
                 {
                     (*p_ident)->order = program->nuniforms;
                 }
-                (*p_ident)->bind = NULL;
                 (*p_ident)->size = 1; //TODO, parse
                 p_ident++;
                 s_ident++;
@@ -157,6 +156,7 @@ static int glbProgramClean(GLBProgram *program)
         }
 
     //XXX debug/*{{{*/
+#ifdef DEBUG
     int max_attribs;
     glGetProgramiv(program->globj, GL_ACTIVE_ATTRIBUTES, &max_attribs);
     for(i = 0; i < max_attribs; i++)
@@ -168,6 +168,7 @@ static int glbProgramClean(GLBProgram *program)
         printf("attrib %d: %s, %s\n", i, glbTypeString(type), buf);
     }
     printf("\n");
+#endif
    /*}}}*/
 
         program->dirty = 0;
@@ -201,17 +202,17 @@ GLBProgram *glbCreateProgram (int *errcode_ret)
     program->globj = glCreateProgram();
 
     program->framebuffer = NULL;
-    memset(program->shaders, 0, sizeof(void*) * GLB_NPROGRAM_SHADERS);
-    //memset(program->textures, 0, sizeof(void*) * GLB_MAX_TEXTURES);
-    memset(program->inputs, 0, sizeof(void*) * GLB_MAX_INPUTS);
-    memset(program->outputs, 0, sizeof(void*) * GLB_MAX_OUTPUTS);
-    memset(program->uniforms, 0, sizeof(void*) * GLB_MAX_UNIFORMS);
+    memset(program->shaders, 0, sizeof(void* [GLB_NPROGRAM_SHADERS]));
+    memset(program->textures, 0, sizeof(void* [GLB_MAX_TEXTURES]));
+    memset(program->inputs, 0, sizeof(void* [GLB_MAX_INPUTS]));
+    memset(program->outputs, 0, sizeof(void* [GLB_MAX_OUTPUTS]));
+    memset(program->uniforms, 0, sizeof(void* [GLB_MAX_UNIFORMS]));
 
     GLB_SET_ERROR(GLB_SUCCESS);
     return program;
 
-ERROR_CREATE:
-    free(program);
+//ERROR_CREATE:
+//    free(program);
 ERROR:
     GLB_SET_ERROR(errcode);
 
@@ -610,6 +611,7 @@ int glbProgramUniform (GLBProgram *program, int shader, int i, int sz, void *val
 
 int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *texture)
 {
+    int errcode;
     glbProgramClean(program);
 
     int shaderid = glbProgramShaderIndex(shader);
@@ -620,7 +622,7 @@ int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *textu
      * the third uniform defined (in the GLSL shader), this will transform i from 1 -> 3
      */
     int j;
-    int trans = 0;
+    int trans = i;
     for(j = 0; j < i; j++)
     {
         if(!glbTypeIsOpaque(program->shaders[shaderid]->uniforms[j]->type))
@@ -628,7 +630,6 @@ int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *textu
             trans++;
         }
     }
-    i += trans;
 
     // i now refers to the correct index in the uniform array
 
@@ -640,9 +641,22 @@ int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *textu
         }
     }
 
-
     //TODO: index i by Opaque types index instead of Uniform indices
-    return glbProgramUniformIdent(program, program->uniforms[i], true, sizeof(GLBTexture), texture);
+    errcode = glbProgramUniformIdent(
+                                    program, 
+                                    program->uniforms[trans], 
+                                    true, 
+                                    sizeof(GLBTexture), 
+                                    texture
+                                    );
+    if(!errcode)
+    {
+        glbRetainTexture(texture);
+        glbReleaseTexture(program->textures[i]);
+        program->textures[i] = texture;
+        return GLB_SUCCESS;
+    }
+    return errcode;
 }
 
 int glbProgramNamedUniform (GLBProgram *program, char *name, int sz, void *val)
@@ -672,6 +686,7 @@ int glbProgramNamedTexture (GLBProgram *program, char *name, GLBTexture *texture
     glbProgramClean(program);
     //int location;
     //location = glGetUniformLocation(program->globj, name);
+    //TODO: find order of texture
 
     int i;
     for(i = 0; i < GLB_MAX_TEXTURES; i++)
@@ -784,17 +799,16 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
     glDrawBuffers(program->noutputs, drawbufs);
 
     // bind all textures
-    /*
-    TODO: proper texture binding
+    
     for(i = 0; i < GLB_MAX_TEXTURES; i++)
     {
         if(program->textures[i])
         {
-            GLBTexture *tex = program->textures[i]->bind;
+            GLBTexture *tex = program->textures[i];
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(tex->target, tex->globj);
         }
-    }*/
+    }
 
     // bind correct vertex data locations
     // if a layout is given, use the layout, else guess from the program
