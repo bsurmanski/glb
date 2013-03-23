@@ -148,8 +148,24 @@ GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
 
     void *buf = malloc(glbTGA_image_sz(&header));
     errcode = glbTGA_image_read(file, &header, buf);
-    GLB_ASSERT(!errcode, GLB_UNIMPLEMENTED, ERROR_IMG);
-    GLBTexture *texture = glbCreateTexture(0, GLB_RGBA, ///<TODO: non-rgba texture formats
+
+    int depth = glbTGA_pxl_sz(&header);
+    int format; 
+    switch(depth)
+    {
+        case 4:
+            format = GLB_RGBA;
+            break;
+        case 3:
+            format = GLB_RGB;
+            break;
+        default:
+            errcode = GLB_UNIMPLEMENTED;
+            goto ERROR_IMG;
+    }
+
+    GLB_ASSERT(!errcode, GLB_UNIMPLEMENTED, ERROR_IMG); ///<TODO: non-rgb/rgba texture formats
+    GLBTexture *texture = glbCreateTexture(0, format,
                           header.img.w, header.img.h, 1, buf, &errcode);
     free(buf);
     GLB_ASSERT(!errcode, errcode, ERROR_READ);

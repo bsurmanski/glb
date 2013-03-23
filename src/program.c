@@ -637,7 +637,7 @@ int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *textu
     {
         if(program->shaders[j])
         {
-            i += program->shaders[j]->nuniforms; 
+            trans += program->shaders[j]->nuniforms; 
         }
     }
 
@@ -752,12 +752,12 @@ int glbProgramOutput (GLBProgram *program, GLBFramebuffer *output)
 /*{{{ Draw */
 int glbProgramDraw (GLBProgram *program, GLBBuffer *array)
 {
-    return glbProgramDrawRange (program, array, array->vdata.count, 0);
+    return glbProgramDrawRange (program, array, 0, array->nmemb);
 }
 
 int glbProgramDrawIndexed (GLBProgram *program, GLBBuffer *array, GLBBuffer *index)
 {
-    return glbProgramDrawIndexedRange(program, array, index, index->idata.count, 0);
+    return glbProgramDrawIndexedRange(program, array, index, 0, index->idata.count);
 }
 
 int glbProgramDrawRange (GLBProgram *program, GLBBuffer *array, int offset, int count)
@@ -780,7 +780,11 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
 
     glUseProgram(program->globj);
     glBindBuffer(GL_ARRAY_BUFFER, array->globj);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->globj);
+
+    if(index)
+    {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->globj);
+    }
     /*
     if(program->framebuffer)
     {
@@ -812,7 +816,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
 
     // bind correct vertex data locations
     // if a layout is given, use the layout, else guess from the program
-    if(&array->vdata.layout)
+    if(array->vdata.layout)
     {
         for(i = 0; i < array->vdata.count; i++)
         {
@@ -827,23 +831,24 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
         for(i = 0; i < program->ninputs; i++)
         {
             int attrib_type = program->inputs[i]->type;
-            int attrib_sz = glbTypeSizeof(attrib_type);
+            int attrib_len = glbTypeLength(attrib_type);
+            int attrib_size = glbTypeSizeof(attrib_type);
             glEnableVertexAttribArray(i);
             //TODO: change GL_FLOAT 
             if(program->inputs[i]->isInt)
             {
                 glVertexAttribIPointer(program->inputs[i]->location,
-                                       attrib_sz, GL_FLOAT,
-                                       array->sz / array->nmemb,
+                                       attrib_len, GL_FLOAT,
+                                       attrib_size, //TODO handle arrays
                                        (void*) attrib_offset);
             } else //expected
             {
                 glVertexAttribPointer(program->inputs[i]->location,
-                                      attrib_sz, GL_FLOAT, GL_FALSE,
-                                      array->sz / array->nmemb,
+                                      attrib_len, GL_FLOAT, GL_FALSE,
+                                      attrib_size, //TODO: handle arrays
                                       (void*) attrib_offset);
             }
-            attrib_offset += attrib_sz;
+            attrib_offset += attrib_size;
         }
     }
 
