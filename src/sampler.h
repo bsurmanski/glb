@@ -50,13 +50,13 @@ GLBSampler* glbCreateSampler (int *errcode_ret);
 void        glbDeleteSampler (GLBSampler *sampler);
 void        glbRetainSampler (GLBSampler *sampler);
 void        glbReleaseSampler(GLBSampler *sampler);
-void glbSetSamplerFilter (GLBSampler *sampler, enum GLBSamplerFilter min, enum GLBSamplerFilter mag);
-void glbSetSamplerLOD    (GLBSampler *sampler, float minlod, float maxlod);
-void glbSetSamplerWrap   (GLBSampler *sampler,
+void glbSamplerFilter (GLBSampler *sampler, enum GLBSamplerFilter min, enum GLBSamplerFilter mag);
+void glbSamplerLOD    (GLBSampler *sampler, float minlod, float maxlod);
+void glbSamplerWrap   (GLBSampler *sampler,
                           enum GLBSamplerWrap s,
                           enum GLBSamplerWrap t,
                           enum GLBSamplerWrap r);
-void glbSetSamplerCompare(GLBSampler *sampler,
+void glbSamplerCompare(GLBSampler *sampler,
                           enum GLBSamplerCompareMode m,
                           enum GLBSamplerCompareFunc f);
 

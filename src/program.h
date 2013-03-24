@@ -1,4 +1,4 @@
-/*
+/**
  * program.h
  * GLB
  * March 01, 2013
@@ -46,6 +46,8 @@ int         glbProgramDetachShaderStage   (GLBProgram *program, enum GLBShaderSt
 // Bindables
 
 int         glbProgramUniform             (GLBProgram *program, int shader, int i, int sz, void *val);
+int         glbProgramUniformMatrix       (GLBProgram *program, int shader, int i, 
+                                           int w, int h, bool transpose, void *val);
 int         glbProgramTexture             (GLBProgram *program, int shader, int i, GLBTexture *texture);
 int         glbProgramNamedUniform        (GLBProgram *program, char *name, int sz, void *val);
 int         glbProgramNamedTexture        (GLBProgram *program, char *name, GLBTexture *texture);

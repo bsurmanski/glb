@@ -56,19 +56,19 @@ void glbReleaseSampler(GLBSampler *sampler)
     }
 }
 
-void glbSetSamplerFilter (GLBSampler *sampler, enum GLBSamplerFilter min, enum GLBSamplerFilter mag)
+void glbSamplerFilter (GLBSampler *sampler, enum GLBSamplerFilter min, enum GLBSamplerFilter mag)
 {
     sampler->minfilter = min;
     sampler->magfilter = mag;
 }
 
-void glbSetSamplerLOD    (GLBSampler *sampler, float minlod, float maxlod)
+void glbSamplerLOD    (GLBSampler *sampler, float minlod, float maxlod)
 {
     sampler->minlod = minlod;
     sampler->maxlod = maxlod;
 }
 
-void glbSetSamplerWrap   (GLBSampler *sampler,
+void glbSamplerWrap   (GLBSampler *sampler,
                           enum GLBSamplerWrap s,
                           enum GLBSamplerWrap t,
                           enum GLBSamplerWrap r)
@@ -78,7 +78,7 @@ void glbSetSamplerWrap   (GLBSampler *sampler,
     sampler->wrap_r = r;
 }
 
-void glbSetSamplerCompare(GLBSampler *sampler,
+void glbSamplerCompare(GLBSampler *sampler,
                           enum GLBSamplerCompareMode m,
                           enum GLBSamplerCompareFunc f)
 {

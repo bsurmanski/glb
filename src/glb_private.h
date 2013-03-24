@@ -124,9 +124,7 @@ struct GLBTexture
     int refcount;
     GLuint globj;
 
-    uint32_t x;     ///< width
-    uint32_t y;     ///< height
-    uint32_t z;     ///< depth (of a 3D image)
+    size_t dim[3]; ///<texture dimensions (width, height, depth (for 3D textures)) 
     uint32_t format; ///< image format
     uint32_t size;  ///< size in bytes
     GLenum target;  ///< texture unit target (eg GL_TEXTURE_2D)

@@ -641,7 +641,39 @@ int glbProgramUniform (GLBProgram *program, int shader, int i, int sz, void *val
         }
     }
 
-    return glbProgramUniformIdent(program, program->uniforms[i], true, sz, val);
+    return glbProgramUniformIdent(program, program->uniforms[i], false, sz, val);
+}
+
+/**
+ * this function exists simply to provide the optional free transpose
+ * that the glUniformMatrix functions provide. If transpose is false, 
+ * this function is otherwise equivilent to calling 
+ * glbProgramUniform with sz=sizeof(float[w*h]).
+ * TODO allow for arrays of matrices
+ * @param program the program which to bind the uniform to
+ * @param shader a constant representing the shader stage the uniform is defined in
+ * @param i the order in which the uniform is defined within the shader
+ * @param w the width of the matrix in components
+ * @param h the height of the matrix in components
+ * @param transpose specifieds whether to transpose the matrix as the values are loaded
+ * @param val a pointer to the matrix
+ */
+int glbProgramUniformMatrix (GLBProgram *program, int shader, int i, 
+                                           int w, int h, bool transpose, void *val)
+{
+    glbProgramClean(program);
+
+    int j;
+    int shaderid = glbProgramShaderIndex(shader);
+    for(j = 0; j < shaderid; j++)
+    {
+        if(program->shaders[j])
+        {
+            i += program->shaders[j]->nuniforms;
+        }
+    }
+
+    return glbProgramUniformIdent(program, program->uniforms[i], transpose, sizeof(float[w*h]), val);
 }
 
 int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *texture)

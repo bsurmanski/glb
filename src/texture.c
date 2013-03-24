@@ -43,11 +43,11 @@ static struct GLBTextureFormat FORMAT[] =
 
 static int glbTextureDimensions(GLBTexture *texture)
 {
-    if(texture->z > 1)
+    if(texture->dim[2] > 1)
     {
         return 3;
     }
-    if(texture->y > 1)
+    if(texture->dim[1] > 1)
     {
         return 2;
     }
@@ -88,9 +88,9 @@ GLBTexture* glbCreateTexture (enum GLBAccess flags,
     if(z < 1) z = 1;
     glGenTextures(1, &texture->globj);
     texture->refcount = 1;
-    texture->x = x;
-    texture->y = y;
-    texture->z = z;
+    texture->dim[0] = x;
+    texture->dim[1] = y;
+    texture->dim[2] = z;
     texture->format = format;
     texture->sampler = NULL;
     texture->size = x * y * z * FORMAT[format].depth; //TODO: assert format is correct
@@ -257,7 +257,8 @@ int glbFillTexture (GLBTexture *texture, int level,
     int x = 1;
     int y = 1;
     int z = 1;
-    size_t bufsz = texture->x * texture->y * texture->z * FORMAT[texture->format].depth;
+    size_t bufsz = texture->dim[0] * texture->dim[1] * texture->dim[2] * 
+                   FORMAT[texture->format].depth;
     uint32_t *buf = malloc(bufsz);
     switch(glbTextureDimensions(texture))
     {
@@ -275,9 +276,9 @@ int glbFillTexture (GLBTexture *texture, int level,
         {
             for(i = 0; i < x; i++)
             {
-                memcpy(&buf[((k + origin[2]) * texture->z) *
-                            ((j + origin[1]) * texture->y) *
-                            ((i + origin[0]) * texture->x)],
+                memcpy(&buf[((k + origin[2]) * texture->dim[2]) *
+                            ((j + origin[1]) * texture->dim[1]) *
+                            ((i + origin[0]) * texture->dim[0])],
                         fill_color,
                         sizeof(uint32_t)); //TODO: non-rgba
             }
@@ -352,4 +353,9 @@ int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region,
         free(readbuf);
     }
     return 0;
+}
+
+const size_t *const glbTextureSize (GLBTexture *texture)
+{
+    return texture->dim;
 }

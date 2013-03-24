@@ -57,4 +57,6 @@ int          glbWriteTexture   (GLBTexture *texture,
 int          glbReadTexture    (GLBTexture *texture, int level, int *origin,
                                 int *region, int size, void *ptr);
 
+const size_t *const glbTextureSize (GLBTexture *texture);
+
 #endif

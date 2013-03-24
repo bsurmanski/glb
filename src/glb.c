@@ -10,7 +10,7 @@
  * @mainpage
  * GLB
  *
- * GLB is an abstraction layer built upon OpenGL created to reduce the little
+ * *GLB* is an abstraction layer built upon OpenGL created to reduce the little
  * annoyances of working with vanilla OpenGL. GLB can be thought of as a redesign
  * of the OpenGL interface, designed to clean up and modernize the OpenGL API.
  * There is no new functionality in GLB, but what it does have is easier to learn
