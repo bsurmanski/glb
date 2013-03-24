@@ -176,6 +176,10 @@ static int glbProgramClean(GLBProgram *program)
 
     return 0;
 ERROR: //TODO: proper errors
+#ifdef DEBUG
+    printf("error attaching shaders\n");
+#endif
+    program->dirty = 0;
     return 1;
 }
 
@@ -442,7 +446,7 @@ static int glbProgramUniformIdent(GLBProgram *program, GLBProgramIdent *ident,
     int errcode = 0;
     int n=1;
 
-    if(ident->location < 0)
+    if(!ident || ident->location < 0)
     {
         return GLB_INVALID_ARGUMENT;
     }

@@ -30,8 +30,9 @@ struct GLBTextureFormat
 
 static struct GLBTextureFormat FORMAT[] =
 {
-    {4, GL_RGBA8,               GL_RGBA,            GL_UNSIGNED_BYTE},  // RGBA
-    {3, GL_RGB8,                GL_RGB,             GL_UNSIGNED_BYTE},  // RGB
+    //TODO: for some reason, I require to specify BGRA instread of RGBA (endianess?)
+    {4, GL_RGBA8,               GL_BGRA,            GL_UNSIGNED_BYTE},  // RGBA
+    {3, GL_RGB8,                GL_BGR,             GL_UNSIGNED_BYTE},  // RGB
     {4, GL_DEPTH_COMPONENT32,   GL_DEPTH_COMPONENT, GL_FLOAT},          // DEPTH
     {1, GL_R8,                  GL_RED,             GL_FLOAT},          // STENCIL
     {4, GL_DEPTH24_STENCIL8,    GL_DEPTH_STENCIL,   GL_FLOAT},          // DEPTH-STENCIL
