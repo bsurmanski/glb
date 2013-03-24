@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+
 /**
  * gets the array index for a given shader
  */
@@ -40,6 +42,11 @@ static int glbProgramShaderIndex(int shader_index)
             break;
     }
     return ret;
+}
+
+static GLBShader *glbGetProgramShader(GLBProgram *program, int shader_index)
+{
+    return program->shaders[glbProgramShaderIndex(shader_index)];
 }
 
 // forces the program to clean
@@ -90,14 +97,38 @@ static int glbProgramClean(GLBProgram *program)
             }
         }
 
+        //TODO: assumtion that input is vshader, and output is fshader
+        GLBShader *vshader = glbGetProgramShader(program, GLB_VERTEX_SHADER);
+        GLBShader *fshader = glbGetProgramShader(program, GLB_FRAGMENT_SHADER);
+
+        /*
+         * work around to allow shaders more outputs than the framebuffer has attachments.
+         * (eg, framebuffer has 1 texture target, shader outputs 2 variables. Expected 
+         * result when attempting to draw is that the first shader output will be applied
+         * to the framebuffer, but the result is determinant on which one has the lowest 
+         * fragdatalocation (and mesa numbers locations backwards from defined))
+         *
+         * grrr... crap like this is exactly why i started GLB
+         */
+        if(fshader)
+        {
+            for(i = 0; i < fshader->noutputs; i++)
+            {
+                glBindFragDataLocation(program->globj, i, fshader->outputs[i]->name);
+            }
+        }
+
         glLinkProgram(program->globj);
 
-        //TODO: assumtion that input is vshader, and output is fshader
-        GLBShader *vshader = program->shaders[glbProgramShaderIndex(GLB_VERTEX_SHADER)];
-        GLBShader *fshader = program->shaders[glbProgramShaderIndex(GLB_FRAGMENT_SHADER)];
+        /*
+         * convert GLBShader metadata into GLBProgram metadata. pretty much
+         * the same thing, except program metadata has the Location cached
+         * (which is only availible after linking)
+         */
         program->ninputs = 0;
         program->noutputs = 0;
         int nopaques = 0;
+        //TODO: assumtion that input is vshader, and output is fshader
         if(!vshader || !fshader) goto ERROR;
         struct GLBShaderIdent **s_ident = vshader->inputs;
         struct GLBProgramIdent **p_ident = program->inputs;
@@ -799,12 +830,15 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
     }*/ //TODO re-enable once framebuffers work
 
     // set correct draw buffers
+    int noutputs = program->framebuffer ? 
+                   MIN(program->noutputs, program->framebuffer->ncolors) : 1;
+    noutputs = program->noutputs;
     GLenum *drawbufs = alloca(sizeof(GLenum) * program->noutputs);
-    for (i = 0; i < program->noutputs; i++)
+    for (i = 0; i < noutputs; i++)
     {
         drawbufs[i] = GL_COLOR_ATTACHMENT0 + program->outputs[i]->location;
     }
-    glDrawBuffers(program->noutputs, drawbufs);
+    glDrawBuffers(noutputs, drawbufs);
 
     // bind all textures
     
