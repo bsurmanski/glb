@@ -71,7 +71,7 @@ static int glbTextureDimensions(GLBTexture *texture)
  * @param errcode_ret an optional pointer used to return any error codes. errcode_ret
  * will be set to GLB_SUCCESS (0) if the operation was successful
  */
-GLBTexture* glbCreateTexture (enum GLBAccess flags,
+GLBTexture* glbCreateTexture (enum GLBTextureFlags flags,
                               enum GLBImageFormat format,
                               int x,
                               int y,
@@ -99,21 +99,35 @@ GLBTexture* glbCreateTexture (enum GLBAccess flags,
     {
 
         case 3:
-            texture->target = GL_TEXTURE_3D;
-            glBindTexture(GL_TEXTURE_3D, texture->globj);
-            glTexImage3D(GL_TEXTURE_3D, 0, FORMAT[format].internalFormat,
+            if(flags & GLB_TEXTURE_ARRAY)
+            {
+                texture->target = GL_TEXTURE_2D_ARRAY;
+            } else
+            {
+                texture->target = GL_TEXTURE_3D;
+            }
+
+            glBindTexture(texture->target, texture->globj);
+            glTexImage3D(texture->target, 0, FORMAT[format].internalFormat,
                          x, y, z, 0, FORMAT[format].format, FORMAT[format].type, ptr);
             break;
         case 2:
-            texture->target = GL_TEXTURE_2D;
-            glBindTexture(GL_TEXTURE_2D, texture->globj);
-            glTexImage2D(GL_TEXTURE_2D, 0, FORMAT[format].internalFormat,
+            if(flags & GLB_TEXTURE_ARRAY)
+            {
+                texture->target = GL_TEXTURE_1D_ARRAY;
+            } else
+            {
+                texture->target = GL_TEXTURE_2D;
+            }
+
+            glBindTexture(texture->target, texture->globj);
+            glTexImage2D(texture->target, 0, FORMAT[format].internalFormat,
                          x, y, 0, FORMAT[format].format, FORMAT[format].type, ptr);
             break;
         case 1:
             texture->target = GL_TEXTURE_1D;
-            glBindTexture(GL_TEXTURE_1D, texture->globj);
-            glTexImage1D(GL_TEXTURE_1D, 0, FORMAT[format].internalFormat,
+            glBindTexture(texture->target, texture->globj);
+            glTexImage1D(texture->target, 0, FORMAT[format].internalFormat,
                          x, 0, FORMAT[format].format, FORMAT[format].type, ptr);
             break;
         default: //error, should never reach here
@@ -135,7 +149,7 @@ ERROR:
     return NULL;
 }
 
-GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
+GLBTexture* glbCreateTextureWithTGA (enum GLBTextureFlags flags,
                                      const char *filenm,
                                      int *errcode_ret)
 {
@@ -149,6 +163,7 @@ GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
 
     void *buf = malloc(glbTGA_image_sz(&header));
     errcode = glbTGA_image_read(file, &header, buf);
+    fclose(file);
 
     int depth = glbTGA_pxl_sz(&header);
     int format; 
@@ -169,8 +184,7 @@ GLBTexture* glbCreateTextureWithTGA (enum GLBAccess flags,
     GLBTexture *texture = glbCreateTexture(0, format,
                           header.img.w, header.img.h, 1, buf, &errcode);
     free(buf);
-    GLB_ASSERT(!errcode, errcode, ERROR_READ);
-    fclose(file);
+    GLB_ASSERT(!errcode, errcode, ERROR);
 
     GLB_SET_ERROR(GLB_SUCCESS);
     return texture;
@@ -250,15 +264,15 @@ int glbTextureSampler (GLBTexture *texture, struct GLBSampler *sampler)
     return 0;
 }
 
-int glbFillTexture (GLBTexture *texture, int level,
-                    int *origin, int *region, void *fill_color)
+int glbFillTexture (GLBTexture *texture, int level, int *origin, int *region, 
+                                enum GLBImageFormat fillfmt, void *fill_color)
 {
     int errcode = 0;
     int x = 1;
     int y = 1;
     int z = 1;
     size_t bufsz = texture->dim[0] * texture->dim[1] * texture->dim[2] * 
-                   FORMAT[texture->format].depth;
+                   FORMAT[fillfmt].depth;
     uint32_t *buf = malloc(bufsz);
     switch(glbTextureDimensions(texture))
     {
@@ -276,51 +290,104 @@ int glbFillTexture (GLBTexture *texture, int level,
         {
             for(i = 0; i < x; i++)
             {
-                memcpy(&buf[((k + origin[2]) * texture->dim[2]) *
-                            ((j + origin[1]) * texture->dim[1]) *
-                            ((i + origin[0]) * texture->dim[0])],
+                memcpy(&buf[((k + origin[2]) * texture->dim[1] * texture->dim[0]) +
+                            ((j + origin[1]) * texture->dim[0]) +
+                            ((i + origin[0]))],
                         fill_color,
                         sizeof(uint32_t)); //TODO: non-rgba
             }
         }
     }
-    errcode = glbWriteTexture(texture, level, origin, region, bufsz, buf);
+    errcode = glbWriteTexture(texture, level, origin, region, fillfmt, bufsz, buf);
     free(buf);
     return errcode;
 }
 
 //TODO: is size required?
-int glbWriteTexture(GLBTexture *texture,
-                    int level, int *origin,
-                    int *region, int size, void *ptr)
+int glbWriteTexture (GLBTexture *texture, int level, int *origin, int *region, 
+                            enum GLBImageFormat writefmt, int size, void *ptr)
 {
     if(!texture || !ptr) return GLB_INVALID_ARGUMENT;
 
     glBindTexture(texture->target, texture->globj);
 
-    struct GLBTextureFormat *format = &FORMAT[texture->format];
-    if(format->depth * region[0] * region[1] < size) return GLB_INVALID_ARGUMENT;
+    struct GLBTextureFormat *format = &FORMAT[writefmt];
+    if(format->depth * region[0] * region[1] > size) return GLB_INVALID_ARGUMENT;
 
     switch(texture->target)
     {
+        case GL_TEXTURE_1D:
+            glTexSubImage1D(texture->target, level, origin[0],
+                            region[0], format->format, format->type, ptr);
+            return 0;
         case GL_TEXTURE_2D:
-            glTexSubImage2D(GL_TEXTURE_2D, level, origin[0], origin[1],
+        case GL_TEXTURE_1D_ARRAY:
+            glTexSubImage2D(texture->target, level, origin[0], origin[1],
                             region[0], region[1], format->format, format->type, ptr);
             return 0;
 
-        case GL_TEXTURE_1D:
         case GL_TEXTURE_3D:
+        case GL_TEXTURE_2D_ARRAY:
+            glTexSubImage3D(texture->target, level, origin[0], origin[1], origin[2],
+                             region[0], region[1], region[2], 
+                             format->format, format->type, ptr);
+            return 0;
         default:
             return GLB_UNIMPLEMENTED;
     }
 }
 
-int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region,
-                    int size, void *ptr)
+int glbWriteTextureWithTGA(GLBTexture *texture, int level, int *origin, int *region,
+                           const char *filenm)
+{
+    int errcode;
+    FILE *file = fopen(filenm, "rb");
+    GLB_ASSERT(file, GLB_FILE_NOT_FOUND, ERROR);
+
+    struct glbTGA_header header;
+    errcode = glbTGA_header_read(file, &header);
+    GLB_ASSERT(!errcode, GLB_READ_ERROR, ERROR_READ);
+
+    size_t bufsz = glbTGA_image_sz(&header);
+    void *buf = malloc(bufsz);
+    errcode = glbTGA_image_read(file, &header, buf);
+    fclose(file);
+
+    int depth = glbTGA_pxl_sz(&header);
+    int format; 
+    switch(depth)
+    {
+        case 4:
+            format = GLB_RGBA;
+            break;
+        case 3:
+            format = GLB_RGB;
+            break;
+        default:
+            errcode = GLB_UNIMPLEMENTED;
+            goto ERROR_IMG;
+    }
+
+    GLB_ASSERT(!errcode, GLB_UNIMPLEMENTED, ERROR_IMG); ///<TODO: non-rgb/rgba texture formats
+
+    errcode = glbWriteTexture(texture, level, origin, region, format, bufsz, buf);
+    free(buf);
+    return errcode;
+
+ERROR_IMG:
+    free(buf);
+ERROR_READ:
+    fclose(file);
+ERROR:
+    return errcode;
+}
+
+int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region, 
+                            enum GLBImageFormat readfmt, int size, void *ptr)
 {
     if(!texture || !ptr) return GLB_INVALID_ARGUMENT;
 
-    struct GLBTextureFormat *format = &FORMAT[texture->format];
+    struct GLBTextureFormat *format = &FORMAT[readfmt];
     if(size < region[0] * region[1] * format->depth) return GLB_INVALID_ARGUMENT;
 
     void *readbuf = ptr;
@@ -331,7 +398,7 @@ int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region,
 
     // region is not whole image
     if(origin[0] != 0 || origin[1] != 0 ||
-       region[0] != levelw || region[1] != levelh)
+       region[0] != levelw || region[1] != levelh) //TODO: 3D read
     {
         readbuf = malloc(format->depth * levelw * levelh);
     }
@@ -353,6 +420,45 @@ int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region,
         free(readbuf);
     }
     return 0;
+}
+
+int glbCopyTexture (GLBTexture *src, GLBTexture *dst, 
+                    int srclvl, int dstlvl,
+                    int *srcorigin, int *dstorigin,
+                    int *region)
+{
+    if(!src || !dst) return GLB_INVALID_ARGUMENT;
+    int errcode = 0;
+    //struct GLBTextureFormat *srcfmt = &FORMAT[src->format];
+    struct GLBTextureFormat *dstfmt = &FORMAT[dst->format];
+    size_t sz = dstfmt->depth;
+    switch(glbTextureDimensions(src))
+    {
+        default:
+            sz = 0;
+            break;
+        case 3:
+            sz *= region[2];
+        case 2:
+            sz *= region[1];
+        case 1:
+            sz *= region[0];
+        
+    }
+    if(!sz) return GLB_INVALID_ARGUMENT;
+
+    void *data = malloc(sz);
+    
+
+    errcode = glbReadTexture(src, srclvl, srcorigin, region, dst->format, sz, data);
+    GLB_ASSERT(!errcode, GLB_READ_ERROR, ERROR_READ);
+    errcode = glbWriteTexture(dst, dstlvl, dstorigin, region, dst->format, sz, data);
+    GLB_ASSERT(!errcode, GLB_WRITE_ERROR, ERROR_READ);
+    //TODO deal with different formats between src and dst
+
+ERROR_READ:
+    free(data);
+    return errcode;
 }
 
 const size_t *const glbTextureSize (GLBTexture *texture)

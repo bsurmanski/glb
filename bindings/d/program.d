@@ -5,17 +5,18 @@
  * Brandon Surmanski
  */
 
-#ifndef _GLB_PROGRAM_H
-#define _GLB_PROGRAM_H
+module c.glb.program;
 
-#include "glb_types.h"
+import c.glb.glb_types;
 
-#define GLB_NPROGRAM_SHADERS 5
+extern(C):
 
-#define GLB_MAX_TEXTURES    16
-#define GLB_MAX_UNIFORMS    16
-#define GLB_MAX_INPUTS      16
-#define GLB_MAX_OUTPUTS     16
+const GLB_NPROGRAM_SHADERS = 5;
+
+const GLB_MAX_TEXTURES  =  16;
+const GLB_MAX_UNIFORMS  =  16;
+const GLB_MAX_INPUTS    =  16;
+const GLB_MAX_OUTPUTS   =  16;
 
 // Initialization/Deinitialization
 
@@ -32,16 +33,16 @@ int         glbProgramOption              (GLBProgram *program, int option, int 
 // Shaders
 
 int         glbProgramAttachNewShaderSourceFile (GLBProgram *program, 
-                                               const char *filenm,
-                                               enum GLBShaderStage stage);
+                                               const(string) filenm,
+                                               int stage);
 
 int         glbProgramAttachNewShaderSource (GLBProgram *program, 
                                          int len, const char *mem,
-                                         enum GLBShaderStage stage); 
+                                         int stage); 
 
 void        glbProgramAttachShader        (GLBProgram *program, GLBShader *shader);
 int         glbProgramDetachShader        (GLBProgram *program, GLBShader *shader);
-int         glbProgramDetachShaderStage   (GLBProgram *program, enum GLBShaderStage stage);
+int         glbProgramDetachShaderStage   (GLBProgram *program, int stage);
 
 // Bindables
 
@@ -84,5 +85,3 @@ int         glbProgramDrawIndexedRange    (GLBProgram *program,
                                            GLBBuffer *array, 
                                            GLBBuffer *index,
                                            int offset, int count);
-
-#endif

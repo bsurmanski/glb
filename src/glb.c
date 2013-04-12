@@ -83,6 +83,8 @@ static struct TypeAssociation types[] =
     //Opaque
     {"sampler1D", 9, GLB_SAMPLER_1D},
     {"sampler2D", 9, GLB_SAMPLER_2D},
+    {"sampler1DArray", 14, GLB_SAMPLER_1D_ARRAY},
+    {"sampler2DArray", 14, GLB_SAMPLER_2D_ARRAY},
     {"sampler3D", 9, GLB_SAMPLER_3D},
     {"samplerCube", 9, GLB_SAMPLER_CUBE},
     {"samplerCubeShadow", 9, GLB_SAMPLER_CUBE_SHADOW},
@@ -208,8 +210,16 @@ const char *const glbTypeString(int type)
 
         //opaque types
 
+    case GLB_SAMPLER_1D:
+        return "sampler1D";
     case GLB_SAMPLER_2D:
         return "sampler2D";
+    case GLB_SAMPLER_3D:
+        return "sampler3D";
+    case GLB_SAMPLER_1D_ARRAY:
+        return "sampler1DArray";
+    case GLB_SAMPLER_2D_ARRAY:
+        return "sampler2DArray";
 
     default:
         return NULL;
@@ -391,6 +401,7 @@ bool glbTypeIsMatrix(int type)
 bool glbTypeIsOpaque(int type)
 {
     return (type == GLB_SAMPLER_1D || type == GLB_SAMPLER_2D || type == GLB_SAMPLER_3D ||
+            type == GLB_SAMPLER_1D_ARRAY || type == GLB_SAMPLER_2D_ARRAY ||
             type == GLB_SAMPLER_CUBE || type == GLB_SAMPLER_1D_SHADOW ||
             type == GLB_SAMPLER_2D_SHADOW || type == GLB_SAMPLER_CUBE_SHADOW);
 }

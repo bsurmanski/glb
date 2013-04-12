@@ -118,6 +118,17 @@ static int glbProgramClean(GLBProgram *program)
             }
         }
 
+        /**
+         * work around for out of order inputs... grrr
+         */
+        if(vshader)
+        {
+            for(i = 0; i < vshader->ninputs; i++)
+            {
+                glBindAttribLocation(program->globj, i, vshader->inputs[i]->name);
+            }
+        }
+
         glLinkProgram(program->globj);
 
         /*
@@ -604,10 +615,13 @@ static int glbProgramUniformIdent(GLBProgram *program, GLBProgramIdent *ident,
         {
             case GLB_SAMPLER_1D:
             case GLB_SAMPLER_2D:
+            case GLB_SAMPLER_3D:
+            case GLB_SAMPLER_1D_ARRAY:
+            case GLB_SAMPLER_2D_ARRAY:
                 //TODO: bind textures to shader
                 glActiveTexture(GL_TEXTURE0 + ident->order);
                 glBindTexture(((GLBTexture*)val)->target, ((GLBTexture*)val)->globj);
-                glUniform1i(ident->location, ident->order);
+                glUniform1i(ident->location, ident->order); //TODO: order might collide between shaders
                 break;
             default:
                 return GLB_UNIMPLEMENTED;
@@ -659,7 +673,7 @@ int glbProgramUniform (GLBProgram *program, int shader, int i, int sz, void *val
  * @param val a pointer to the matrix
  */
 int glbProgramUniformMatrix (GLBProgram *program, int shader, int i, 
-                                           int w, int h, bool transpose, void *val)
+                                           size_t sz, bool transpose, void *val)
 {
     glbProgramClean(program);
 
@@ -673,7 +687,7 @@ int glbProgramUniformMatrix (GLBProgram *program, int shader, int i,
         }
     }
 
-    return glbProgramUniformIdent(program, program->uniforms[i], transpose, sizeof(float[w*h]), val);
+    return glbProgramUniformIdent(program, program->uniforms[i], transpose, sz, val);
 }
 
 int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *texture)
@@ -819,12 +833,24 @@ int glbProgramOutput (GLBProgram *program, GLBFramebuffer *output)
 /*{{{ Draw */
 int glbProgramDraw (GLBProgram *program, GLBBuffer *array)
 {
-    return glbProgramDrawRange (program, array, 0, array->nmemb);
+    if(array) 
+    {
+         return glbProgramDrawRange (program, array, 0, array->nmemb);
+    }
+    return GLB_INVALID_ARGUMENT;
 }
 
 int glbProgramDrawIndexed (GLBProgram *program, GLBBuffer *array, GLBBuffer *index)
 {
-    return glbProgramDrawIndexedRange(program, array, index, 0, index->idata.count);
+    if(index)
+    {
+        return glbProgramDrawIndexedRange(program, array, index, 0, index->idata.count);
+    } else if(array)
+    {
+        return glbProgramDrawIndexedRange(program, array, index, 0, array->nmemb);
+    } 
+
+    return GLB_INVALID_ARGUMENT;
 }
 
 int glbProgramDrawRange (GLBProgram *program, GLBBuffer *array, int offset, int count)
@@ -891,7 +917,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
         for(i = 0; i < array->vdata.count; i++)
         {
             GLBVertexLayout *layout = &array->vdata.layout[i];
-            glEnableVertexAttribArray(i);
+            glEnableVertexAttribArray(i); //TODO check for int (AttribIPointer)
             glVertexAttribPointer(i, layout->size, layout->type, layout->normalized,
                                   layout->stride, (void*) layout->offset);
         }

@@ -34,6 +34,8 @@ GLBBuffer* glbCreateBuffer (size_t nmemb, size_t sz, const void *const ptr, int 
 {
     int errcode;
 
+    GLB_ASSERT(nmemb * sz, GLB_INVALID_ARGUMENT, ERROR_BUFFER);
+
     GLBBuffer *buffer = malloc(sizeof(GLBBuffer));
     GLB_ASSERT(buffer, GLB_OUT_OF_MEMORY, ERROR_BUFFER);
     buffer->refcount = 1;

@@ -5,20 +5,15 @@
  * Brandon Surmanski
  */
 
-#ifndef _GLB_TEXTURE_H
-#define _GLB_TEXTURE_H
+module c.glb.texture;
 
-#include "glb_types.h"
+import c.glb.glb_types;
+import c.gl.gl;
+import c.gl.glext;
 
-/*
-enum GLBAccess
-{
-    GLB_READ_ONLY = GL_READ_ONLY,
-    GLB_WRITE_ONLY = GL_WRITE_ONLY,
-    GLB_READ_WRITE = GL_READ_WRITE,
-};*/
+extern(C):
 
-enum GLBImageFormat
+enum 
 {
     GLB_RGBA            = 0,
     GLB_RGB             = 1,
@@ -30,7 +25,7 @@ enum GLBImageFormat
     GLB_RGBA_INT        = 7,
 };
 
-enum GLBTextureFlags
+enum 
 {
     GLB_READ_ONLY     = 1,
     GLB_WRITE_ONLY    = 2,
@@ -38,15 +33,15 @@ enum GLBTextureFlags
     GLB_TEXTURE_ARRAY = 4,  
 };
 
-GLBTexture*  glbCreateTexture  (enum GLBTextureFlags flags,
-                                enum GLBImageFormat format,
+GLBTexture*  glbCreateTexture  (int flags,
+                                int format,
                                 int x,
                                 int y,
                                 int z,
                                 void *ptr,
                                 int *errcode_ret);
 
-GLBTexture*  glbCreateTextureWithTGA (enum GLBTextureFlags flags,
+GLBTexture*  glbCreateTextureWithTGA (int flags,
                                       const char *filenm,
                                       int *errcode_ret);
 
@@ -57,16 +52,16 @@ int          glbTextureGenerateMipmap(GLBTexture *texture);
 int          glbTextureSampler (GLBTexture *texture, GLBSampler *sampler);
 
 int          glbFillTexture    (GLBTexture *texture, int level, int *origin, int *region, 
-                                enum GLBImageFormat fillfmt, void *fill_color);
+                                int fillfmt, void *fill_color);
 
 int          glbWriteTexture   (GLBTexture *texture, int level, int *origin, int *region, 
-                                enum GLBImageFormat writefmt, int size, void *ptr);
+                                int writefmt, int size, void *ptr);
 
 int          glbWriteTextureWithTGA(GLBTexture *texture, int level, int *origin, int *region,
                                 const char *filenm);
 
 int          glbReadTexture    (GLBTexture *texture, int level, int *origin, int *region, 
-                                enum GLBImageFormat readfmt, int size, void *ptr);
+                                int readfmt, int size, void *ptr);
 
 int          glbCopyTexture    (GLBTexture *src, GLBTexture *dst, 
                                 int srclvl, int dstlvl,
@@ -74,6 +69,4 @@ int          glbCopyTexture    (GLBTexture *src, GLBTexture *dst,
                                 int *region);
                                 
 
-const size_t *const glbTextureSize (GLBTexture *texture);
-
-#endif
+const(size_t) *glbTextureSize (GLBTexture *texture);

@@ -5,25 +5,23 @@
  * Brandon Surmanski
  */
 
-#ifndef _GLB_H
-#define _GLB_H
+module c.glb.glb;
 
-#include <stdbool.h>
-#include <stdio.h>
+import c.gl.gl;
+import c.gl.glext;
 
-#include <GL/gl.h>
-#include <GL/glext.h>
+public import c.glb.glb_types;
+public import c.glb.buffer;
+public import c.glb.framebuffer;
+public import c.glb.sampler;
+public import c.glb.texture;
+public import c.glb.shader;
+public import c.glb.program;
 
-#include "glb_types.h"
-#include "buffer.h"
-#include "framebuffer.h"
-#include "sampler.h"
-#include "texture.h"
-#include "shader.h"
-#include "program.h"
+extern (C):
 
-const char *const glbTypeString(int type);
-int glbStringType(int len, const char *const str);
+const(string) glbTypeString(int type);
+int glbStringType(int len, const(string) str);
 int glbTypeSizeof(int type);
 int glbTypeLength(int type);
 bool glbTypeIsInt(int type);
@@ -50,10 +48,10 @@ int glbTypeToSigned(int type);
 bool glbCanUseFeature(int feature);
 
 // errors
-const char *const glbErrorString(int error);
+const(string) glbErrorString(int error);
 
 ///TODO use draw options
-enum GLBDrawOptions
+enum 
 {
     GLB_NO_DRAW_OPTIONS = 0,
     GLB_OPTIONS_RESET   = 1,
@@ -67,7 +65,7 @@ enum GLBDrawOptions
 };
 
 ///TODO use primative type option
-enum GLBPrimativeTypes
+enum 
 {
     GLB_POINTS                      = GL_POINTS,
     GLB_LINE_STRIP                  = GL_LINE_STRIP,
@@ -83,7 +81,7 @@ enum GLBPrimativeTypes
     GLB_PATCHES                     = GL_PATCHES,
 };
 
-enum GLBError
+enum 
 {
     GLB_SUCCESS = 0, ///< guarenteed to be zero. A function completed without error
     GLB_FILE_NOT_FOUND, ///< a file string parameter does not refer to an existing file
@@ -98,7 +96,7 @@ enum GLBError
     GLB_GL_TOO_OLD, ///< a feature depends on an OpenGL version newer than the one in use
 };
 
-enum GLBScalar
+enum 
 {
     GLB_BOOL    = GL_BOOL,
     GLB_BYTE    = GL_BYTE,
@@ -115,7 +113,7 @@ enum GLBScalar
     GLB_UINT    = GL_UNSIGNED_INT
 };
 
-enum GLBVector
+enum 
 {
     GLB_VEC2    = GL_FLOAT_VEC2,
     GLB_VEC3    = GL_FLOAT_VEC3,
@@ -153,7 +151,7 @@ enum GLBVector
     GLB_BOOL_VEC4 = GL_BOOL_VEC4,
 };
 
-enum GLBMatrix
+enum 
 {
     GLB_MAT2    = GL_FLOAT_MAT2,
     GLB_MAT3    = GL_FLOAT_MAT3,
@@ -176,7 +174,7 @@ enum GLBMatrix
 };
 
 ///TODO: add all opaque types from GLSL to GLBOpaque enum
-enum GLBOpaque
+enum 
 {
     GLB_SAMPLER_1D = GL_SAMPLER_1D,
     GLB_SAMPLER_2D = GL_SAMPLER_2D,
@@ -189,7 +187,7 @@ enum GLBOpaque
     GLB_SAMPLER_CUBE_SHADOW = GL_SAMPLER_CUBE_SHADOW,
 };
 
-enum GLBFeatures
+enum 
 {
     // buffer object features
     GLB_BUFFER_OBJECT_FEATURE,
@@ -209,11 +207,9 @@ enum GLBFeatures
 
     // shader object features
     GLB_SHADER_OBJECT_FEATURE,
-    GLB_VERTEX_SHADER_FEATURE = GLB_VERTEX_SHADER,
-    GLB_TESS_CONTROL_SHADER_FEATURE = GLB_TESS_CONTROL_SHADER,
-    GLB_TESS_EVALUATION_SHADER_FEATURE = GLB_TESS_EVALUATION_SHADER,
-    GLB_GEOMETRY_SHADER_FEATURE = GLB_GEOMETRY_SHADER,
-    GLB_FRAGMENT_SHADER_FEATURE = GLB_FRAGMENT_SHADER,
+    GLB_VERTEX_SHADER_FEATURE = GL_VERTEX_SHADER,
+    GLB_TESS_CONTROL_SHADER_FEATURE = GL_TESS_CONTROL_SHADER,
+    GLB_TESS_EVALUATION_SHADER_FEATURE = GL_TESS_EVALUATION_SHADER,
+    GLB_GEOMETRY_SHADER_FEATURE = GL_GEOMETRY_SHADER,
+    GLB_FRAGMENT_SHADER_FEATURE = GL_FRAGMENT_SHADER,
 };
-
-#endif
