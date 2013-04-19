@@ -39,6 +39,7 @@ static struct GLBTextureFormat FORMAT[] =
     {1, GL_R8UI,                GL_RED,             GL_UNSIGNED_BYTE},  // BYTE
     {2, GL_RG16UI,              GL_RG_INTEGER,      GL_UNSIGNED_SHORT}, // SHORT
     {4, GL_R32UI,               GL_RED_INTEGER,     GL_UNSIGNED_INT},   // INT
+    {4, GL_RG16UI,              GL_RG_INTEGER,      GL_UNSIGNED_SHORT},   // INT-INT
 };
 
 static int glbTextureDimensions(GLBTexture *texture)
@@ -71,7 +72,7 @@ static int glbTextureDimensions(GLBTexture *texture)
  * @param errcode_ret an optional pointer used to return any error codes. errcode_ret
  * will be set to GLB_SUCCESS (0) if the operation was successful
  */
-GLBTexture* glbCreateTexture (enum GLBTextureFlags flags,
+GLBTexture* glbCreateTexture (int flags,
                               enum GLBImageFormat format,
                               int x,
                               int y,
@@ -200,7 +201,7 @@ ERROR:
 
 int glbDeleteTexture (GLBTexture *texture)
 {
-    if(!texture) return GLB_INVALID_ARGUMENT;
+    if(!texture) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 
     glDeleteTextures(1, &texture->globj);
     return 0;
@@ -208,7 +209,7 @@ int glbDeleteTexture (GLBTexture *texture)
 
 int glbRetainTexture(GLBTexture *texture)
 {
-    if(!texture) return GLB_INVALID_ARGUMENT;
+    if(!texture) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 
     texture->refcount++;
     return 0;
@@ -216,7 +217,7 @@ int glbRetainTexture(GLBTexture *texture)
 
 int glbReleaseTexture(GLBTexture *texture)
 {
-    if(!texture) return GLB_INVALID_ARGUMENT;
+    if(!texture) GLB_RETURN_ERROR(GLB_SUCCESS);
 
     texture->refcount--;
     if(texture->refcount <= 0)
@@ -240,7 +241,7 @@ int glbTextureGenerateMipmap(GLBTexture *texture)
 
 int glbTextureSampler (GLBTexture *texture, struct GLBSampler *sampler)
 {
-    if(!texture) return GLB_INVALID_ARGUMENT;
+    if(!texture) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 
     if(texture->sampler)
     {
@@ -300,19 +301,19 @@ int glbFillTexture (GLBTexture *texture, int level, int *origin, int *region,
     }
     errcode = glbWriteTexture(texture, level, origin, region, fillfmt, bufsz, buf);
     free(buf);
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 }
 
 //TODO: is size required?
 int glbWriteTexture (GLBTexture *texture, int level, int *origin, int *region, 
                             enum GLBImageFormat writefmt, int size, void *ptr)
 {
-    if(!texture || !ptr) return GLB_INVALID_ARGUMENT;
+    if(!texture || !ptr) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 
     glBindTexture(texture->target, texture->globj);
 
     struct GLBTextureFormat *format = &FORMAT[writefmt];
-    if(format->depth * region[0] * region[1] > size) return GLB_INVALID_ARGUMENT;
+    if(format->depth * region[0] * region[1] > size) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 
     switch(texture->target)
     {
@@ -333,7 +334,7 @@ int glbWriteTexture (GLBTexture *texture, int level, int *origin, int *region,
                              format->format, format->type, ptr);
             return 0;
         default:
-            return GLB_UNIMPLEMENTED;
+            GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
     }
 }
 
@@ -372,35 +373,58 @@ int glbWriteTextureWithTGA(GLBTexture *texture, int level, int *origin, int *reg
 
     errcode = glbWriteTexture(texture, level, origin, region, format, bufsz, buf);
     free(buf);
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 
 ERROR_IMG:
     free(buf);
 ERROR_READ:
     fclose(file);
 ERROR:
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 }
 
-int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region, 
+int glbReadTexture (GLBTexture *texture, int level, const int *const origin, 
+                            int const *const region, 
                             enum GLBImageFormat readfmt, int size, void *ptr)
 {
-    if(!texture || !ptr) return GLB_INVALID_ARGUMENT;
+    if(!texture || !ptr) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
+
+    glBindTexture(texture->target, texture->globj);
+
+    int x = 0;
+    int y = 0;
+    int z = 0;
+    int rx = 1;
+    int ry = 1;
+    int rz = 1;
+    int levelw = 1, levelh = 1, leveld = 1;
+    switch(glbTextureDimensions(texture))
+    {
+        case 3:
+            rz = region[2];
+            z = origin[2];
+            glGetTexLevelParameteriv(texture->target, level, GL_TEXTURE_DEPTH, &leveld);
+        case 2:
+            ry = region[1];
+            y = origin[1];
+            glGetTexLevelParameteriv(texture->target, level, GL_TEXTURE_HEIGHT, &levelh);
+        case 1:
+            rx = region[0];
+            x = origin[0];
+            glGetTexLevelParameteriv(texture->target, level, GL_TEXTURE_WIDTH, &levelw);
+    }
 
     struct GLBTextureFormat *format = &FORMAT[readfmt];
-    if(size < region[0] * region[1] * format->depth) return GLB_INVALID_ARGUMENT;
+    if(size && size < rx * ry * rz * format->depth) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 
-    void *readbuf = ptr;
-    int levelw, levelh;
-    glBindTexture(texture->target, texture->globj);
-    glGetTexLevelParameteriv(texture->target, level, GL_TEXTURE_WIDTH, &levelw);
-    glGetTexLevelParameteriv(texture->target, level, GL_TEXTURE_WIDTH, &levelh);
+    uint8_t *readbuf = ptr;
 
     // region is not whole image
-    if(origin[0] != 0 || origin[1] != 0 ||
-       region[0] != levelw || region[1] != levelh) //TODO: 3D read
+
+    if(x != 0 || y != 0 || z != 0 ||
+       rx != levelw || ry != levelh || rz != leveld)
     {
-        readbuf = malloc(format->depth * levelw * levelh);
+        readbuf = malloc(format->depth * levelw * levelh * leveld);
     }
 
     // kind of silly how they dont have glGetTexSubImage
@@ -410,13 +434,33 @@ int glbReadTexture (GLBTexture *texture, int level, int *origin, int *region,
 
     if(readbuf != ptr)
     {
+        int i,j,k;
+
+        for(k = 0; k < rz; k++)
+        {
+            for(j = 0; j < ry; j++)
+            {
+                for(i = 0; i < rx; i++)
+                {
+                    memcpy(&(((char*)ptr)[((k + z) * ry * rx) +
+                            ((j + y) * rx) +
+                            ((i + x))]), 
+                            &readbuf[((k + z) * texture->dim[1] * texture->dim[0]) +
+                            ((j + y) * texture->dim[0]) +
+                            ((i + x))], 
+                            format->depth);
+                }
+            }
+        }
+
+        /*
         int i;
-        for(i = 0; i < region[1]; i++) //copy each row to ptr
+        for(i = 0; i < ry; i++) //copy each row to ptr
         {
             memcpy(((char*)ptr) + (i * region[0]) * format->depth,
                    ((char*)readbuf) + (origin[0] + (origin[1] + i) * region[0]) * format->depth,
                     region[0] * format->depth);
-        }
+        }*/
         free(readbuf);
     }
     return 0;
@@ -445,7 +489,7 @@ int glbCopyTexture (GLBTexture *src, GLBTexture *dst,
             sz *= region[0];
         
     }
-    if(!sz) return GLB_INVALID_ARGUMENT;
+    if(!sz) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 
     void *data = malloc(sz);
     
@@ -458,10 +502,10 @@ int glbCopyTexture (GLBTexture *src, GLBTexture *dst,
 
 ERROR_READ:
     free(data);
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 }
 
-const size_t *const glbTextureSize (GLBTexture *texture)
+const int *const glbTextureSize (GLBTexture *texture)
 {
     return texture->dim;
 }

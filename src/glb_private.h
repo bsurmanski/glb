@@ -15,6 +15,7 @@
 
 #include "glb_types.h"
 #include "glb.h"
+#include <stdio.h>
 
 #include <GL/gl.h>
 
@@ -26,12 +27,36 @@
         } \
     } while(0);
 
+#ifdef DEBUG
+#define GLB_SET_ERROR(a) \
+    do { \
+        if(errcode_ret) {\
+            *errcode_ret = (a);\
+        }\
+        if(a){ \
+            printf("Error in function %s: %s\n", __FUNCTION__, glbErrorString(a));\
+        }\
+    } while(0);
+
+#define GLB_RETURN_ERROR(a) \
+        {\
+        if(a){ \
+            printf("Error in function %s: %s\n", __FUNCTION__, glbErrorString(a));\
+        }\
+        return (a);\
+        }
+        
+#else
 #define GLB_SET_ERROR(a) \
     do { \
         if(errcode_ret) {\
             *errcode_ret = (a);\
         }\
     } while(0);
+
+#define GLB_RETURN_ERROR(a) \
+        return (a); 
+#endif
 
 /*{{{ Buffer*/
 
@@ -124,7 +149,7 @@ struct GLBTexture
     int refcount;
     GLuint globj;
 
-    size_t dim[3]; ///<texture dimensions (width, height, depth (for 3D textures)) 
+    int dim[3]; ///<texture dimensions (width, height, depth (for 3D textures)) 
     uint32_t format; ///< image format
     uint32_t size;  ///< size in bytes
     GLenum target;  ///< texture unit target (eg GL_TEXTURE_2D)

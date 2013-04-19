@@ -21,6 +21,10 @@ int             glbFramebufferColor(GLBFramebuffer *framebuffer, int i, GLBTextu
 int             glbFramebufferDepth(GLBFramebuffer *framebuffer, GLBTexture *depth);
 int             glbFramebufferStencil(GLBFramebuffer *framebuffer, GLBTexture *stencil);
 int             glbFramebufferDepthStencil(GLBFramebuffer *framebuffer, GLBTexture *depth_stencil);
+void            glbFramebufferClear(GLBFramebuffer *framebuffer);
+
+void            glbFramebufferReadColor(GLBFramebuffer *framebuffer, int i, 
+                                        int *origin, int *region, void *dst);
 
 GLBTexture     *glbGetFramebufferColor(GLBFramebuffer *framebuffer, int i);
 GLBTexture     *glbGetFramebufferDepth(GLBFramebuffer *framebuffer);

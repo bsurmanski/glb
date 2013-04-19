@@ -96,6 +96,7 @@ enum GLBError
     GLB_MAP_ERROR, ///< GLB was unable to correctly map or unmap a buffer, due to a GL error
     GLB_UNIMPLEMENTED, ///< a feature is currently not implemented, and may be in the future
     GLB_GL_TOO_OLD, ///< a feature depends on an OpenGL version newer than the one in use
+    GLB_SHADER_ATTACH_ERROR,
 };
 
 enum GLBScalar

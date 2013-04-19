@@ -25,9 +25,10 @@ enum GLBImageFormat
     GLB_DEPTH           = 2,
     GLB_STENCIL         = 3,
     GLB_DEPTH_STENCIL   = 4,
-    GLB_R_INT           = 5,
-    GLB_RG_INT          = 6,
-    GLB_RGBA_INT        = 7,
+    GLB_INT8            = 5,
+    GLB_INT16           = 6,
+    GLB_INT32           = 7,
+    GLB_2INT16          = 8,
 };
 
 enum GLBTextureFlags
@@ -38,7 +39,7 @@ enum GLBTextureFlags
     GLB_TEXTURE_ARRAY = 4,  
 };
 
-GLBTexture*  glbCreateTexture  (enum GLBTextureFlags flags,
+GLBTexture*  glbCreateTexture  (int flags,
                                 enum GLBImageFormat format,
                                 int x,
                                 int y,
@@ -65,7 +66,8 @@ int          glbWriteTexture   (GLBTexture *texture, int level, int *origin, int
 int          glbWriteTextureWithTGA(GLBTexture *texture, int level, int *origin, int *region,
                                 const char *filenm);
 
-int          glbReadTexture    (GLBTexture *texture, int level, int *origin, int *region, 
+int          glbReadTexture    (GLBTexture *texture, int level, const int * const origin, 
+                                const int *const region, 
                                 enum GLBImageFormat readfmt, int size, void *ptr);
 
 int          glbCopyTexture    (GLBTexture *src, GLBTexture *dst, 
@@ -74,6 +76,6 @@ int          glbCopyTexture    (GLBTexture *src, GLBTexture *dst,
                                 int *region);
                                 
 
-const size_t *const glbTextureSize (GLBTexture *texture);
+const int *const glbTextureSize (GLBTexture *texture);
 
 #endif

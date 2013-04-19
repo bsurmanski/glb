@@ -90,9 +90,9 @@ int glbFramebufferTexture(GLBFramebuffer *framebuffer, GLBTexture *texture)
     {
         case GLB_RGBA:
         case GLB_RGB:
-        case GLB_R_INT:
-        case GLB_RG_INT:
-        case GLB_RGBA_INT:
+        case GLB_INT8:
+        case GLB_INT16:
+        case GLB_INT32:
             for(i = 0; i < framebuffer->ncolors; i++)
             {
                 if(framebuffer->colors[i] == texture)
@@ -224,6 +224,27 @@ int glbFramebufferDepthStencil(GLBFramebuffer *framebuffer, GLBTexture *depth_st
     framebuffer->stencil = depth_stencil;
 
     return glbFramebufferAttachment(framebuffer, GL_DEPTH_STENCIL_ATTACHMENT, depth_stencil);
+}
+
+void glbFramebufferClear(GLBFramebuffer *framebuffer)
+{
+    if(framebuffer) 
+    { 
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->globj);
+    }
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void glbFramebufferReadColor(GLBFramebuffer *framebuffer, int i, 
+                             int *origin, int *region, void *dst)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->globj);
+    glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+    glReadPixels(origin[0], origin[1], region[0], region[1], 
+                 GL_RG_INTEGER, GL_UNSIGNED_SHORT, dst); //TODO: flexible format
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLBTexture *glbGetFramebufferColor(GLBFramebuffer *framebuffer, int i)

@@ -218,11 +218,8 @@ static int glbProgramClean(GLBProgram *program)
 
     return 0;
 ERROR: //TODO: proper errors
-#ifdef DEBUG
-    printf("error attaching shaders\n");
-#endif
     program->dirty = 0;
-    return 1;
+    GLB_RETURN_ERROR(GLB_SHADER_ATTACH_ERROR);
 }
 
 /*{{{ Initialization/Deinitializaion*/
@@ -261,10 +258,6 @@ GLBProgram *glbCreateProgram (int *errcode_ret)
 //    free(program);
 ERROR:
     GLB_SET_ERROR(errcode);
-
-#ifdef DEBUG
-    printf("GLBCreateProgram Error: %s\n", glbErrorString(errcode));
-#endif
 
     return NULL;
 }
@@ -351,7 +344,7 @@ int glbProgramOption (GLBProgram *program, int option, int value)
     }
 
     //TODO: set program options
-    return GLB_UNIMPLEMENTED;
+    GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
 }/*}}}*/
 
 /*{{{ Shaders*/
@@ -378,10 +371,10 @@ int glbProgramAttachNewShaderSourceFile (GLBProgram *program,
     glbProgramAttachShader(program, shader);
     glbReleaseShader(shader);
 
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 
 ERROR_SOURCE:
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 }
 
 /**
@@ -402,7 +395,7 @@ int glbProgramAttachNewShaderSource (GLBProgram *program,
     glbProgramAttachShader(program, shader);
     glbReleaseShader(shader);
 
-    return errcode; //TODO: error handle
+    GLB_RETURN_ERROR(errcode); //TODO: error handle
 }
 /**
  * Attaches a shader to be used by program. The program will also retain the
@@ -454,7 +447,7 @@ int glbProgramDetachShader (GLBProgram *program, GLBShader *shader)
         }
     }
 
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 }
 
 /**
@@ -477,7 +470,7 @@ int glbProgramDetachShaderStage (GLBProgram *program, enum GLBShaderStage stage)
         errcode = 0;
         program->dirty = 1;
     }
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 }/*}}}*/
 
 /*{{{ Bindables */
@@ -488,9 +481,14 @@ static int glbProgramUniformIdent(GLBProgram *program, GLBProgramIdent *ident,
     int errcode = 0;
     int n=1;
 
-    if(!ident || ident->location < 0)
+    if(!ident)
     {
         return GLB_INVALID_ARGUMENT;
+    }
+
+    if(ident->location < 0)
+    {
+        return 0;
     }
 
     if(glbTypeSizeof(ident->type)) //TODO: workaround to avoid FPEXCEPT for Opaque types without size
@@ -655,7 +653,7 @@ int glbProgramUniform (GLBProgram *program, int shader, int i, int sz, void *val
         }
     }
 
-    return glbProgramUniformIdent(program, program->uniforms[i], false, sz, val);
+    GLB_RETURN_ERROR(glbProgramUniformIdent(program, program->uniforms[i], false, sz, val));
 }
 
 /**
@@ -687,7 +685,7 @@ int glbProgramUniformMatrix (GLBProgram *program, int shader, int i,
         }
     }
 
-    return glbProgramUniformIdent(program, program->uniforms[i], transpose, sz, val);
+    GLB_RETURN_ERROR(glbProgramUniformIdent(program, program->uniforms[i], transpose, sz, val));
 }
 
 int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *texture)
@@ -733,11 +731,11 @@ int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *textu
     if(!errcode)
     {
         glbRetainTexture(texture);
-        glbReleaseTexture(program->textures[i]);
+        if(program->textures[i]) glbReleaseTexture(program->textures[i]);
         program->textures[i] = texture;
-        return GLB_SUCCESS;
+        GLB_RETURN_ERROR(GLB_SUCCESS);
     }
-    return errcode;
+    GLB_RETURN_ERROR(errcode);
 }
 
 int glbProgramNamedUniform (GLBProgram *program, char *name, int sz, void *val)
@@ -759,7 +757,7 @@ int glbProgramNamedUniform (GLBProgram *program, char *name, int sz, void *val)
     //TODO: column major switch?
     glbProgramUniformIdent(program, &ident, true, sz, val);
 
-    return 0; //TODO: error detection
+    GLB_RETURN_ERROR(0); //TODO: error detection
 }
 
 int glbProgramNamedTexture (GLBProgram *program, char *name, GLBTexture *texture)
@@ -779,45 +777,45 @@ int glbProgramNamedTexture (GLBProgram *program, char *name, GLBTexture *texture
         }
     }
 
-    return GLB_UNIMPLEMENTED;
+    GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
 }
 
 int glbProgramUniformBuffer (GLBProgram *program, char *blocknm, GLBBuffer *buffer)
 {
     glbProgramClean(program);
-    return GLB_UNIMPLEMENTED;
+    GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
 }
 
 int glbProgramUniformBufferRange (GLBProgram *program, char *blocknm,
                                   int offset, int size, GLBBuffer *buffer)
 {
     glbProgramClean(program);
-    return GLB_UNIMPLEMENTED;
+    GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
 }/*}}}*/
 
 /*{{{ Layouts, Inputs, Outputs*/
 int glbProgramUseVertexLayout (GLBProgram *program, int n, struct GLBVertexLayout *layout)
 {
     glbProgramClean(program);
-    return GLB_UNIMPLEMENTED;
+    GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
 }
 
 int glbProgramLayout (GLBProgram *program, int noutputs, char **outputs)
 {
     glbProgramClean(program);
-    return GLB_UNIMPLEMENTED;
+    GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
 }
 
 int glbProgramInputLayout (GLBProgram *program, int n, char **inputs)
 {
     glbProgramClean(program);
-    return GLB_UNIMPLEMENTED;
+    GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
 }
 
 int glbProgramOutputLayout (GLBProgram *program, int n, char **outputs)
 {
     glbProgramClean(program);
-    return GLB_UNIMPLEMENTED;
+    GLB_RETURN_ERROR(GLB_UNIMPLEMENTED);
 }
 
 int glbProgramOutput (GLBProgram *program, GLBFramebuffer *output)
@@ -825,7 +823,7 @@ int glbProgramOutput (GLBProgram *program, GLBFramebuffer *output)
     glbRetainFramebuffer(output);
     glbReleaseFramebuffer(program->framebuffer);
     program->framebuffer = output;
-    return GLB_SUCCESS;
+    GLB_RETURN_ERROR(GLB_SUCCESS);
 }
 
 /*}}}*/
@@ -835,27 +833,27 @@ int glbProgramDraw (GLBProgram *program, GLBBuffer *array)
 {
     if(array) 
     {
-         return glbProgramDrawRange (program, array, 0, array->nmemb);
+         GLB_RETURN_ERROR(glbProgramDrawRange (program, array, 0, array->nmemb));
     }
-    return GLB_INVALID_ARGUMENT;
+    GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 }
 
 int glbProgramDrawIndexed (GLBProgram *program, GLBBuffer *array, GLBBuffer *index)
 {
     if(index)
     {
-        return glbProgramDrawIndexedRange(program, array, index, 0, index->idata.count);
+        GLB_RETURN_ERROR(glbProgramDrawIndexedRange(program, array, index, 0, index->idata.count));
     } else if(array)
     {
-        return glbProgramDrawIndexedRange(program, array, index, 0, array->nmemb);
+        GLB_RETURN_ERROR(glbProgramDrawIndexedRange(program, array, index, 0, array->nmemb));
     } 
 
-    return GLB_INVALID_ARGUMENT;
+    GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 }
 
 int glbProgramDrawRange (GLBProgram *program, GLBBuffer *array, int offset, int count)
 {
-    return glbProgramDrawIndexedRange(program, array, NULL, offset, count);
+    GLB_RETURN_ERROR(glbProgramDrawIndexedRange(program, array, NULL, offset, count));
 }
 
 int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
@@ -868,7 +866,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
 
     if(!program->shaders[0]) // cannot draw if theres no VERTEX SHADER
     {
-        return GLB_INVALID_ARGUMENT;
+        GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
     }
 
     glUseProgram(program->globj);
@@ -878,14 +876,14 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
     {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->globj);
     }
-    /*
+    
     if(program->framebuffer)
     {
         glBindFramebuffer(GL_FRAMEBUFFER, program->framebuffer->globj);
     } else 
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }*/ //TODO re-enable once framebuffers work
+    } //TODO re-enable once framebuffers work
 
     // set correct draw buffers
     int noutputs = program->framebuffer ? 
@@ -918,8 +916,15 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
         {
             GLBVertexLayout *layout = &array->vdata.layout[i];
             glEnableVertexAttribArray(i); //TODO check for int (AttribIPointer)
-            glVertexAttribPointer(i, layout->size, layout->type, layout->normalized,
-                                  layout->stride, (void*) layout->offset);
+            if(program->inputs[i] && program->inputs[i]->isInt)
+            {
+                glVertexAttribIPointer(i, layout->size, layout->type,
+                                      layout->stride, (void*) layout->offset);
+            } else
+            {
+                glVertexAttribPointer(i, layout->size, layout->type, layout->normalized,
+                                      layout->stride, (void*) layout->offset);
+            }
         }
     } else // this assumes each attrib in the shader is sequential and (usually) float type
     {
@@ -934,7 +939,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
             if(program->inputs[i]->isInt)
             {
                 glVertexAttribIPointer(program->inputs[i]->location,
-                                       attrib_len, GL_FLOAT,
+                                       attrib_len, GL_INT,
                                        attrib_size, //TODO handle arrays
                                        (void*) attrib_offset);
             } else //expected
@@ -958,6 +963,7 @@ int glbProgramDrawIndexedRange (GLBProgram *program, GLBBuffer *array,
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glUseProgram(0);
     return 0;
 }/*}}}*/

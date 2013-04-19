@@ -616,6 +616,8 @@ const char *const glbErrorString(int error)
             return "unimplemented feature";
         case GLB_GL_TOO_OLD:
             return "OpenGL too old for feature";
+        case GLB_SHADER_ATTACH_ERROR:
+            return "error attaching shader";
         default:
         return NULL;
     }
