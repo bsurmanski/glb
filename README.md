@@ -16,6 +16,8 @@ above OpenGL is the convenience functions for loading TGAs into textures, and
 for loading a shader object directly from a provided filename. GLB was create to
 be a cleaner equivalent to OpenGL, that uses OpenGL as a backend. 
 
+Since GLB has not been widely tested, and is mostly used for personal use, 
+use GLB in production code with caution.
 
 ##Whats so bad about just using OpenGL?  
 ###Inconsistencies: 
@@ -229,22 +231,25 @@ And finally the C code using GLB:
  }
 ```
 
+##Further Documentation
+
+API documentation is in the form of Doxygen. To create the documentation, simply run
+`make docs` in the project root.
+
 ##TODO:
+
 The following is currently incomplete and needs to be finished or added:
-* sampler objects
-* framebuffer objects 
 * attach mipmap texture levels to framebuffer
 * program options
 * program input/output layout (?)
 * uniform buffers (non-buffer uniforms should work, though)
-* non-RGBA textures
 * TGA color maps
 * more robust GLSL parsing. (currently working, needs improvement(eg, multiple uniform definitions on one line))
 * uniform array length verification variables
 * handling of large amounts of inputs, outputs and uniforms
-* allow for row-major matrices (currently forced column major)
 
 ##Conclusion: 
+
 Due to the requirement of backwards compatibility that OpenGL
 maintains, there is a lot of legacy and badly designed functions. Yes, there was
 the deprecation that came with OpenGL 3.0, but that left all remaining functions
@@ -252,6 +257,7 @@ as is. GLB tries to reimagine OpenGL as a cleaner interface, and hopefully it's
 useful to you.
 
 ##License:
+
 This project is licensed under the MIT Open Source license, which
 means that you can do pretty much whatever you want with this source code. view
 the LICENSE file for full details
