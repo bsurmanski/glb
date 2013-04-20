@@ -163,6 +163,8 @@ And finally the C code using GLB:
 ```c
 #include<assert.h>
 
+#include<glb/glb.h>
+
  int running = 1;
  extern void *vertices;
  extern void *indices;
@@ -235,6 +237,18 @@ And finally the C code using GLB:
 
 API documentation is in the form of Doxygen. To create the documentation, simply run
 `make docs` in the project root.
+
+##Dependencies and Installation
+
+GLB's only dependency is OpenGL and the OpenGL headers. The makefile uses gcc
+for compilation, but any C99 compliant compiler should work. To install run
+
+    make
+    make install
+
+This will install the package headers to /usr/local/include and the library to
+/usr/local/lib. Simply include the `<glb/glb.h>` header and link with `-lglb` to
+use GLB in your project.
 
 ##TODO:
 
