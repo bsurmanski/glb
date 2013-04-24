@@ -8,7 +8,7 @@
  * To see definitions of opaque types, look in glb_private.h
  */
 
-module c.glb.glb_types;
+module c.gl.glb.glb_types;
 
 extern (C):
 

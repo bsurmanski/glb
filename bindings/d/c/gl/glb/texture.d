@@ -5,11 +5,11 @@
  * Brandon Surmanski
  */
 
-module c.glb.texture;
+module c.gl.glb.texture;
 
-import c.glb.glb_types;
 import c.gl.gl;
 import c.gl.glext;
+import c.gl.glb.glb_types;
 
 extern(C):
 
@@ -20,9 +20,10 @@ enum
     GLB_DEPTH           = 2,
     GLB_STENCIL         = 3,
     GLB_DEPTH_STENCIL   = 4,
-    GLB_R_INT           = 5,
-    GLB_RG_INT          = 6,
-    GLB_RGBA_INT        = 7,
+    GLB_INT8            = 5,
+    GLB_INT16           = 6,
+    GLB_INT32           = 7,
+    GLB_2INT16          = 8,
 };
 
 enum 
@@ -69,4 +70,4 @@ int          glbCopyTexture    (GLBTexture *src, GLBTexture *dst,
                                 int *region);
                                 
 
-const(size_t) *glbTextureSize (GLBTexture *texture);
+const(int) *glbTextureSize (GLBTexture *texture);

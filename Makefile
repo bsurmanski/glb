@@ -12,5 +12,6 @@ install:
 	cp libglb.so /usr/local/lib/
 	mkdir -p /usr/local/include/glb/
 	cp $(headers) /usr/local/include/glb/
+	cp -R bindings/* /usr/local/include/
 
 #-Wno-implicit-function-declaration -Wno-unused-function

@@ -5,18 +5,19 @@
  * Brandon Surmanski
  */
 
-module c.glb.glb;
+module c.gl.glb.glb;
 
 import c.gl.gl;
 import c.gl.glext;
 
-public import c.glb.glb_types;
-public import c.glb.buffer;
-public import c.glb.framebuffer;
-public import c.glb.sampler;
-public import c.glb.texture;
-public import c.glb.shader;
-public import c.glb.program;
+public import c.gl.glb.glb_types;
+public import c.gl.glb.buffer;
+public import c.gl.glb.framebuffer;
+public import c.gl.glb.sampler;
+public import c.gl.glb.texture;
+public import c.gl.glb.shader;
+public import c.gl.glb.program;
+
 
 extern (C):
 

@@ -5,9 +5,9 @@
  * Brandon Surmanski
  */
 
-module c.glb.program;
+module c.gl.glb.program;
 
-import c.glb.glb_types;
+import c.gl.glb.glb_types;
 
 extern(C):
 
@@ -48,7 +48,7 @@ int         glbProgramDetachShaderStage   (GLBProgram *program, int stage);
 
 int         glbProgramUniform             (GLBProgram *program, int shader, int i, int sz, void *val);
 int         glbProgramUniformMatrix       (GLBProgram *program, int shader, int i, 
-                                           size_t sz, bool transpose, void *val);
+                                           int sz, bool transpose, void *val);
 int         glbProgramTexture             (GLBProgram *program, int shader, int i, GLBTexture *texture);
 int         glbProgramNamedUniform        (GLBProgram *program, char *name, int sz, void *val);
 int         glbProgramNamedTexture        (GLBProgram *program, char *name, GLBTexture *texture);

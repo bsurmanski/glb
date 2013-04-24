@@ -5,11 +5,11 @@
  * Brandon Surmanski
  */
 
-module c.glb.sampler;
+module c.gl.glb.sampler;
 
 import c.gl.gl;
 import c.gl.glext;
-import c.glb.glb_types;
+import c.gl.glb.glb_types;
 
 extern(C):
 

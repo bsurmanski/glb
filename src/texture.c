@@ -445,8 +445,8 @@ int glbReadTexture (GLBTexture *texture, int level, const int *const origin,
                     memcpy(&(((char*)ptr)[((k + z) * ry * rx) +
                             ((j + y) * rx) +
                             ((i + x))]), 
-                            &readbuf[((k + z) * texture->dim[1] * texture->dim[0]) +
-                            ((j + y) * texture->dim[0]) +
+                            &readbuf[((k + z) * levelh * levelw) +
+                            ((j + y) * levelw) +
                             ((i + x))], 
                             format->depth);
                 }

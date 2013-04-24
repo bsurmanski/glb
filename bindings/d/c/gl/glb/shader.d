@@ -5,11 +5,11 @@
  * Brandon Surmanski
  */
 
-module c.glb.shader;
+module c.gl.glb.shader;
 
-import c.glb.glb_types;
 import c.gl.gl;
 import c.gl.glext;
+import c.gl.glb.glb_types;
 
 extern(C):
 
@@ -29,7 +29,7 @@ GLBShader* glbCreateShaderWithSourceFile (  const char *filenm,
                                            int *errcode_ret);
 
 GLBShader* glbCreateShaderWithSource (  int len,
-                                       const(string) mem,
+                                       void *mem,
                                        int stage,
                                        int *errcode_ret);
 

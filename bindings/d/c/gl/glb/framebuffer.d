@@ -5,9 +5,9 @@
  * Brandon Surmanski
  */
 
-module c.glb.framebuffer;
+module c.gl.glb.framebuffer;
 
-import c.glb.glb_types;
+import c.gl.glb.glb_types;
 
 extern (C):
 
@@ -17,6 +17,7 @@ GLBFramebuffer *glbCreateFramebuffer(int *errcode_ret);
 void            glbDeleteFramebuffer(GLBFramebuffer *framebuffer);
 void            glbRetainFramebuffer(GLBFramebuffer *framebuffer);
 void            glbReleaseFramebuffer(GLBFramebuffer *framebuffer);
+
 int             glbFramebufferTexture(GLBFramebuffer *framebuffer, GLBTexture *texture);
 int             glbFramebufferColor(GLBFramebuffer *framebuffer, int i, GLBTexture *texture);
 int             glbFramebufferDepth(GLBFramebuffer *framebuffer, GLBTexture *depth);
