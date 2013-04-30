@@ -8,6 +8,8 @@ import std.string;
 
 struct Texture
 {
+    @disable this();
+
     private:
         GLBTexture *_texture = null;
         Sampler *_sampler = null;
@@ -29,19 +31,33 @@ struct Texture
         alias TEXTURE_ARRAY = GLB_TEXTURE_ARRAY;
 
         this(int flags, int format, int x, int y, int z, 
-                void *ptr = null, int *errcode_ret = null)
+                void *ptr = null)
         {
-            _texture = glbCreateTexture(flags, format, x, y, z, ptr, errcode_ret);
+            _texture = glbCreateTexture(flags, format, x, y, z, ptr, null); //TODO: errorcodes
         }
 
-        this(int flags, string filenm, int *errcode_ret = null)
+        this(int flags, string filenm)
         {
-            _texture = glbCreateTextureWithTGA(flags, toStringz(filenm), errcode_ret);
+            _texture = glbCreateTextureWithTGA(flags, toStringz(filenm), null); //TODO: errorcodes
+        }
+
+        this(int format, int x, int y, int z, string filenms[])
+        {
+            int origin[3] = [0, 0, 0];
+            int region[3] = [x, y, 1];
+
+            _texture = glbCreateTexture(GLB_TEXTURE_ARRAY, format, x, y, z, null, null); 
+
+            foreach(int i, string filenm; filenms)
+            {
+                origin[2] = i; 
+                glbWriteTextureWithTGA(_texture, 0, origin.ptr, region.ptr, filenm.toStringz());
+            }
         }
 
         ~this()
         {
-            glbDeleteTexture(_texture);
+            glbReleaseTexture(_texture);
         }
 
         int fill(int level, int origin[3], int region[3], int fillfmt, void *fill_color)

@@ -83,7 +83,8 @@ void glbReleaseFramebuffer(GLBFramebuffer *framebuffer)
 int glbFramebufferTexture(GLBFramebuffer *framebuffer, GLBTexture *texture)
 {
     int errcode;
-    GLB_ASSERT(framebuffer && texture, GLB_INVALID_ARGUMENT, ERROR);
+    if(!framebuffer) return 0;
+    GLB_ASSERT(texture, GLB_INVALID_ARGUMENT, ERROR);
 
     int i;
     switch(texture->format)
@@ -119,6 +120,7 @@ ERROR:
 static int glbFramebufferAttachment(GLBFramebuffer *framebuffer,
                                         GLenum attachment, GLBTexture *texture)
 {
+    if(!framebuffer) return 0;
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->globj);
     switch(texture->target)
     {
@@ -151,6 +153,7 @@ static int glbFramebufferAttachment(GLBFramebuffer *framebuffer,
  */
 int glbFramebufferColor(GLBFramebuffer *framebuffer, int i, GLBTexture *texture)
 {
+    if(!framebuffer) return 0;
     if(i > GLB_FRAMEBUFFER_COLORS_MAX)
     {
         return GLB_INVALID_ARGUMENT;
@@ -170,6 +173,7 @@ int glbFramebufferColor(GLBFramebuffer *framebuffer, int i, GLBTexture *texture)
  */
 int glbFramebufferDepth(GLBFramebuffer *framebuffer, GLBTexture *depth)
 {
+    if(!framebuffer) return 0;
     if(depth != framebuffer->stencil)
     {
         glbRetainTexture(depth);
@@ -192,6 +196,7 @@ int glbFramebufferDepth(GLBFramebuffer *framebuffer, GLBTexture *depth)
  */
 int glbFramebufferStencil(GLBFramebuffer *framebuffer, GLBTexture *stencil)
 {
+    if(!framebuffer) return 0;
     if(stencil != framebuffer->depth)
     {
         glbRetainTexture(stencil);
@@ -214,6 +219,7 @@ int glbFramebufferStencil(GLBFramebuffer *framebuffer, GLBTexture *stencil)
  */
 int glbFramebufferDepthStencil(GLBFramebuffer *framebuffer, GLBTexture *depth_stencil)
 {
+    if(!framebuffer) return 0;
     glbRetainTexture(depth_stencil);
     glbReleaseTexture(framebuffer->depth);
     if(framebuffer->stencil != framebuffer->depth)
@@ -240,6 +246,7 @@ void glbFramebufferClear(GLBFramebuffer *framebuffer)
 void glbFramebufferReadColor(GLBFramebuffer *framebuffer, int i, 
                              int *origin, int *region, void *dst)
 {
+    if(!framebuffer) return;
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->globj);
     glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
     glReadPixels(origin[0], origin[1], region[0], region[1], 
@@ -249,15 +256,18 @@ void glbFramebufferReadColor(GLBFramebuffer *framebuffer, int i,
 
 GLBTexture *glbGetFramebufferColor(GLBFramebuffer *framebuffer, int i)
 {
+    if(!framebuffer) return 0;
     return framebuffer->colors[i];
 }
 
 GLBTexture *glbGetFramebufferDepth(GLBFramebuffer *framebuffer)
 {
+    if(!framebuffer) return 0;
     return framebuffer->depth;
 }
 
 GLBTexture *glbGetFramebufferStencil(GLBFramebuffer *framebuffer)
 {
+    if(!framebuffer) return 0;
     return framebuffer->stencil;
 }

@@ -21,8 +21,8 @@ public import c.gl.glb.program;
 
 extern (C):
 
-const(string) glbTypeString(int type);
-int glbStringType(int len, const(string) str);
+const(char) *glbTypeString(int type);
+int glbStringType(int len, const(char) *str);
 int glbTypeSizeof(int type);
 int glbTypeLength(int type);
 bool glbTypeIsInt(int type);
@@ -49,7 +49,7 @@ int glbTypeToSigned(int type);
 bool glbCanUseFeature(int feature);
 
 // errors
-const(string) glbErrorString(int error);
+const(char) *glbErrorString(int error);
 
 ///TODO use draw options
 enum 

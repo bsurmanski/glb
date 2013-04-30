@@ -36,14 +36,16 @@ struct Sampler
         alias GLB_ALWAYS   ALWAYS;
         alias GLB_NEVER    NEVER;
 
-        this(int *errcode_ret = null)
+        static typeof(this) opCall()
         {
-            _sampler = glbCreateSampler(errcode_ret); 
+            Sampler s = Sampler.init;
+            s._sampler = glbCreateSampler(null); 
+            return s;
         }
 
         ~this()
         {
-            glbDeleteSampler(_sampler);
+            glbReleaseSampler(_sampler);
         }
 
         void setFilter(int min, int max)

@@ -33,7 +33,7 @@ int         glbProgramOption              (GLBProgram *program, int option, int 
 // Shaders
 
 int         glbProgramAttachNewShaderSourceFile (GLBProgram *program, 
-                                               const(string) filenm,
+                                               const(char) *filenm,
                                                int stage);
 
 int         glbProgramAttachNewShaderSource (GLBProgram *program, 

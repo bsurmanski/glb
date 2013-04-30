@@ -97,17 +97,20 @@ GLBBuffer* glbCreateVertexBuffer (size_t nmemb, size_t sz, const void *const ptr
 
 void glbDeleteBuffer (GLBBuffer *buffer)
 {
+    if(!buffer) return;
     free(buffer->vdata.layout);
     glDeleteBuffers(1, &buffer->globj);
 }
 
 void glbRetainBuffer (GLBBuffer *buffer)
 {
+    if(!buffer) return;
     buffer->refcount++;
 }
 
 void glbReleaseBuffer(GLBBuffer *buffer)
 {
+    if(!buffer) return;
     buffer->refcount--;
     if(buffer->refcount <= 0)
     {
@@ -117,12 +120,14 @@ void glbReleaseBuffer(GLBBuffer *buffer)
 
 int glbWriteBuffer (GLBBuffer *buffer, size_t offset, size_t sz, void *ptr)
 {
+    if(!buffer) return 0;
     glBufferSubData(buffer->globj, offset, sz, ptr);
     return 0;
 }
 
 int glbReadBuffer (GLBBuffer *buffer, size_t offset, size_t sz, void *ptr)
 {
+    if(!buffer) return 0;
     glGetBufferSubData(buffer->globj, offset, sz, ptr);
     return 0;
 }
@@ -133,6 +138,7 @@ int glbFillBuffer (GLBBuffer *buffer,
                     size_t offset,
                     size_t size)
 {
+    if(!buffer) return 0;
     //TODO
     int complete = 0;
     int try = 3; // try to fill at most this many times if it fails
@@ -158,27 +164,27 @@ int glbCopyBuffer (GLBBuffer *src,
                     size_t dst_offset,
                     size_t size)
 {
+    if(!src || !dst) return 0;
     glCopyBufferSubData(src->globj, dst->globj, src_offset, dst_offset, size);
     return 0;
 }
 
 void* glbMapBuffer (GLBBuffer *buffer, int access)
 {
+    if(!buffer) return 0;
     return glMapBuffer(buffer->globj, access);
 }
 
 int glbUnmapBuffer (GLBBuffer *buffer)
 {
+    if(!buffer) return 0;
     int err = glUnmapBuffer(buffer->globj);
     return err; //unfortunately there is no way to gaurd against this error
 }
 
 int glbVertexBufferFormat (GLBBuffer *buffer, int ndesc, GLBVertexLayout *desc)
 {
-    if(!buffer)
-    {
-        return GLB_INVALID_ARGUMENT;
-    }
+    if(!buffer) return 0;
 
     // if zero passed, clear format
     if(!ndesc || !desc)
@@ -222,8 +228,9 @@ int glbVertexBufferFormat (GLBBuffer *buffer, int ndesc, GLBVertexLayout *desc)
 
 int glbIndexBufferFormat (GLBBuffer *buffer, int offset, int count, int type)
 {
+    if(!buffer) return 0;
     // must be scalar and not float
-    if(!buffer || !glbTypeIsScalar(type) || glbTypeIsFloat(type))
+    if(!glbTypeIsScalar(type) || glbTypeIsFloat(type))
     {
         return GLB_INVALID_ARGUMENT;
     }

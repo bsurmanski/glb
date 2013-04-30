@@ -12,14 +12,16 @@ struct Framebuffer
 
     public:
 
-    this(int *errcode_ret = null)
+    static typeof(this) opCall()
     {
-        _framebuffer = glbCreateFramebuffer(null); 
+        Framebuffer f = Framebuffer.init; 
+        f._framebuffer = glbCreateFramebuffer(null); 
+        return f;
     }
 
     ~this()
     {
-        glbDeleteFramebuffer(_framebuffer);
+        glbReleaseFramebuffer(_framebuffer);
     }
 
     int addTexture(ref Texture texture)

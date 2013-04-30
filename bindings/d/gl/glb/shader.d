@@ -7,6 +7,8 @@ import c.gl.glb.shader;
 
 struct Shader
 {
+    @disable this();
+
     private:
         GLBShader *_shader;
 
@@ -29,6 +31,6 @@ struct Shader
 
         ~this()
         {
-            glbDeleteShader(_shader);
+            glbReleaseShader(_shader);
         }
 }

@@ -8,6 +8,10 @@
 #ifndef _GLB_H
 #define _GLB_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -216,5 +220,9 @@ enum GLBFeatures
     GLB_GEOMETRY_SHADER_FEATURE = GLB_GEOMETRY_SHADER,
     GLB_FRAGMENT_SHADER_FEATURE = GLB_FRAGMENT_SHADER,
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,8 +1,11 @@
 module gl.glb.program;
 
+import std.string;
+
 import c.gl.glb.glb_types;
 import c.gl.glb.program;
 import gl.glb.buffer;
+import gl.glb.texture;
 
 struct Program
 {
@@ -10,19 +13,21 @@ struct Program
         GLBProgram *_program;
 
     public:
-    this(int *errcode_ret = null)
+    static typeof(this) opCall()
     {
-        _program = glbCreateProgram(errcode_ret); 
+        Program p = Program.init;
+        p._program = glbCreateProgram(null); 
+        return p;
     }
 
     ~this()
     {
-        glbDeleteProgram(_program);
+        glbReleaseProgram(_program);
     }
 
     int source(const(string) filenm, int stage)
     {
-        return glbProgramAttachNewShaderSourceFile(_program, filenm, stage);
+        return glbProgramAttachNewShaderSourceFile(_program, filenm.toStringz(), stage);
     }
 
     int source(int len, const void *mem, int stage)
@@ -55,9 +60,9 @@ struct Program
         return glbProgramUniformMatrix(_program, shader, i, sz, transpose, val);
     }
 
-    int texture(int shader, int i, GLBTexture *texture)
+    int texture(int shader, int i, ref Texture texture)
     {
-        return glbProgramTexture(_program, shader, i, texture);
+        return glbProgramTexture(_program, shader, i, texture.getTexture());
     }
 
     int draw(ref Buffer array)
