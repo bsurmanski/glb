@@ -50,8 +50,8 @@ int         glbProgramUniform             (GLBProgram *program, int shader, int 
 int         glbProgramUniformMatrix       (GLBProgram *program, int shader, int i, 
                                            int sz, bool transpose, void *val);
 int         glbProgramTexture             (GLBProgram *program, int shader, int i, GLBTexture *texture);
-int         glbProgramNamedUniform        (GLBProgram *program, char *name, int sz, void *val);
-int         glbProgramNamedTexture        (GLBProgram *program, char *name, GLBTexture *texture);
+int         glbProgramNamedUniform        (GLBProgram *program, const(char) *name, int sz, void *val);
+int         glbProgramNamedTexture        (GLBProgram *program, const(char) *name, GLBTexture *texture);
 int         glbProgramUniformBuffer       (GLBProgram *program, char *blocknm, GLBBuffer *buffer);
 int         glbProgramUniformBufferRange  (GLBProgram *program, char *blocknm, 
                                            int offset, int size, GLBBuffer *buffer);

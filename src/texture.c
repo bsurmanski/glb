@@ -434,22 +434,21 @@ int glbReadTexture (GLBTexture *texture, int level, const int *const origin,
 
     if(readbuf != ptr)
     {
-        int i,j,k;
+        int j,k;
 
         for(k = 0; k < rz; k++)
         {
             for(j = 0; j < ry; j++)
             {
-                for(i = 0; i < rx; i++)
-                {
-                    memcpy(&(((char*)ptr)[((k + z) * ry * rx) +
-                            ((j + y) * rx) +
-                            ((i + x))]), 
-                            &readbuf[((k + z) * levelh * levelw) +
-                            ((j + y) * levelw) +
-                            ((i + x))], 
-                            format->depth);
-                }
+                int ioff = (((k + z) * levelh * levelw) +
+                        ((j + y) * levelw) +
+                        x) * format->depth;
+                int ooff = ((k * ry * rx) +
+                        (j * rx)) *
+                        format->depth;
+                memcpy(&(((char*)ptr)[ooff]), 
+                        &readbuf[ioff], 
+                        format->depth * rx);
             }
         }
 
@@ -492,6 +491,7 @@ int glbCopyTexture (GLBTexture *src, GLBTexture *dst,
     if(!sz) GLB_RETURN_ERROR(GLB_INVALID_ARGUMENT);
 
     void *data = malloc(sz);
+    memset(data, 0xff, sz);
     
 
     errcode = glbReadTexture(src, srclvl, srcorigin, region, dst->format, sz, data);

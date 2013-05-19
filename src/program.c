@@ -738,7 +738,7 @@ int glbProgramTexture (GLBProgram *program, int shader, int i, GLBTexture *textu
     GLB_RETURN_ERROR(errcode);
 }
 
-int glbProgramNamedUniform (GLBProgram *program, char *name, int sz, void *val)
+int glbProgramNamedUniform (GLBProgram *program, const char *const name, int sz, void *val)
 {
     GLuint index;
     GLBProgramIdent ident;
@@ -760,7 +760,7 @@ int glbProgramNamedUniform (GLBProgram *program, char *name, int sz, void *val)
     GLB_RETURN_ERROR(0); //TODO: error detection
 }
 
-int glbProgramNamedTexture (GLBProgram *program, char *name, GLBTexture *texture)
+int glbProgramNamedTexture (GLBProgram *program, const char *const name, GLBTexture *texture)
 {
     glbProgramClean(program);
     //int location;

@@ -30,6 +30,12 @@ struct Texture
         alias READ_WRITE = GLB_READ_WRITE;
         alias TEXTURE_ARRAY = GLB_TEXTURE_ARRAY;
 
+        this(Texture t)
+        {
+            glbRetainTexture(t._texture);
+            this = t;
+        }
+
         this(int flags, int format, int x, int y, int z, 
                 void *ptr = null)
         {
@@ -80,16 +86,38 @@ struct Texture
             return glbReadTexture(_texture, level, origin, region, readfmt, sz, ptr);
         }
 
-        int copy(ref Texture dst, int srclvl, int dstlvl, 
+        int copy(ref Texture src, int srclvl, int dstlvl, 
                  int srcorigin[3], int dstorigin[3], int region[3])
         {
-            return glbCopyTexture(_texture, dst._texture, srclvl, dstlvl,
+            return glbCopyTexture(src._texture, _texture, srclvl, dstlvl,
                                   srcorigin, dstorigin, region);
         }
 
         const(int) *size()
         {
             return glbTextureSize(_texture);
+        }
+
+        @property int width()
+        {
+            return glbTextureSize(_texture)[0];
+        }
+
+        @property int height()
+        {
+            return glbTextureSize(_texture)[1];
+        }
+
+        @property int depth()
+        {
+            return glbTextureSize(_texture)[2];
+        }
+
+        @property Texture dup()
+        {
+            glbRetainTexture(_texture);
+            Texture ret = this;
+            return ret;
         }
 
         int setSampler(Sampler *sampler)
