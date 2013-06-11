@@ -30,7 +30,7 @@ typedef struct glbTGA_header {
     //Image specification
     struct glbTGA_header_img {
         uint16_t xorg;
-        uint16_t yorg;
+        uint16_t yorg; //TODO: properly read bottom left origined image
         uint16_t w;
         uint16_t h;
         uint8_t depth;

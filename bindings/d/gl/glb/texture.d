@@ -1,10 +1,10 @@
 module gl.glb.texture;
 
+import std.string;
+
 import c.gl.glb.glb_types;
 import c.gl.glb.texture;
 import gl.glb.sampler;
-
-import std.string;
 
 struct Texture
 {
@@ -68,29 +68,29 @@ struct Texture
 
         int fill(int level, int origin[3], int region[3], int fillfmt, void *fill_color)
         {
-            return glbFillTexture(_texture, level, origin, region, fillfmt, fill_color); 
+            return glbFillTexture(_texture, level, origin.ptr, region.ptr, fillfmt, fill_color); 
         }
 
         int write(int level, int origin[3], int region[3], int writefmt, int sz, void *ptr)
         {
-            return glbWriteTexture(_texture, level, origin, region, writefmt, sz, ptr); 
+            return glbWriteTexture(_texture, level, origin.ptr, region.ptr, writefmt, sz, ptr); 
         }
 
         int write(int level, int origin[3], int region[3], string filenm)
         {
-            return glbWriteTextureWithTGA(_texture, level, origin, region, toStringz(filenm)); 
+            return glbWriteTextureWithTGA(_texture, level, origin.ptr, region.ptr, toStringz(filenm)); 
         }
 
         int read(int level, int origin[3], int region[3], int readfmt, int sz, void *ptr)
         {
-            return glbReadTexture(_texture, level, origin, region, readfmt, sz, ptr);
+            return glbReadTexture(_texture, level, origin.ptr, region.ptr, readfmt, sz, ptr);
         }
 
         int copy(ref Texture src, int srclvl, int dstlvl, 
                  int srcorigin[3], int dstorigin[3], int region[3])
         {
             return glbCopyTexture(src._texture, _texture, srclvl, dstlvl,
-                                  srcorigin, dstorigin, region);
+                                  srcorigin.ptr, dstorigin.ptr, region.ptr);
         }
 
         const(int) *size()
