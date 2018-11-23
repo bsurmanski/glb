@@ -1,6 +1,6 @@
-#GLB
+# GLB
 
-##An OpenGL Abstraction layer
+## An OpenGL Abstraction layer
 
 GLB is an abstraction layer built upon OpenGL created to reduce the little
 annoyances of working with vanilla OpenGL. GLB can be thought of as a redesign
@@ -19,8 +19,8 @@ be a cleaner equivalent to OpenGL, that uses OpenGL as a backend.
 Since GLB has not been widely tested, and is mostly used for personal use, 
 use GLB in production code with caution.
 
-##Whats so bad about just using OpenGL?  
-###Inconsistencies: 
+## Whats so bad about just using OpenGL?  
+### Inconsistencies: 
 There are many
 inconsistencies in the interface to OpenGL that GLB tries to solve. One example
 is the difference in semantics between the following sets: 
@@ -44,7 +44,7 @@ glbReadBuffer/glbWriteBuffer matches up nicely with
 glbReadTexture/glbWriteTexture. Don't even get me started on all those different
 functions for Uniforms...
 
-###All those different functions for uniforms: 
+### All those different functions for uniforms: 
 In GLB, binding uniforms happens
 all in one functions: glbProgramUniform, which acts similar to
 glProgramUniform\* except it doesn't depend of OpenGL 4.0.
@@ -60,7 +60,7 @@ glProgramUniform\* except it doesn't depend of OpenGL 4.0.
 glbProgramUniform(GLBProgram *program, int shader, int i, int sz, void *val);
 ```
 
-###Binding Textures: 
+### Binding Textures: 
 One thing that acts strangely in OpenGL is the binding of
 textures to programs. In vanilla OpenGL, a texture must be bound to a texture
 unit and a uniform must be updated correspondingly. This is contradictory to 
@@ -68,7 +68,7 @@ binding shaders, or other uniforms. Its just inconsistant. In GLB, texture bindi
 is a single step that makes sense. Instead of multiple steps, one call to 
 glbProgramTexture handles both managing texture units, and the uniform variables. 
 
-###Sane Defaults
+### Sane Defaults
 We've all done it. We think we've gotten everything working, but the textures
 aren't showing up! Yeah, we forgot to set the TEXTURE_MIN_FILTER and TEXTURE_MAG_FILTER
 parameters with glTexParameteri again. 
@@ -80,7 +80,7 @@ All that binding and unbind is such a pain, and the fact that OpenGL functions d
 on persistant state leads to unexpected behaviour and bugs. GLB trys to be as functional 
 as possible, and the result of each GLB function should only depends on the provided parameters.
 
-###Necessity of retrieving uniform locations: 
+### Necessity of retrieving uniform locations: 
 In OpenGL, uniform variable
 locations do not have a consistent number scheme. The spec claims that one
 *MUST* get the location from a call to glUniformLocation to update the uniform
@@ -94,14 +94,14 @@ and the order it was declared. This makes handling uniform variables much
 cleaner and much more flexible for projects with many shaders. Functionality no
 longer depends on a strict naming scheme. 
 
-###Design Philosophies of GLB: 
-####Keep all functionality of OpenGL 
-####Make GLB as externally consistent as possible 
-####Make sure OpenGL stays fast through GLB
-####Make GLB as accessible as possible (this means ANSI C)
-####Keep GLB functional, functions should not depend on persistant state
+### Design Philosophies of GLB: 
+#### Keep all functionality of OpenGL 
+#### Make GLB as externally consistent as possible 
+#### Make sure OpenGL stays fast through GLB
+#### Make GLB as accessible as possible (this means ANSI C)
+#### Keep GLB functional, functions should not depend on persistant state
 
-##Example:
+## Example:
 The following is an example of using GLB to draw a textured and skinned model.
 
 The Vertex Shader (drawmodel.vs):
@@ -233,12 +233,12 @@ And finally the C code using GLB:
  }
 ```
 
-##Further Documentation
+## Further Documentation
 
 API documentation is in the form of Doxygen. To create the documentation, simply run
 `make docs` in the project root.
 
-##Dependencies and Installation
+## Dependencies and Installation
 
 GLB's only dependency is OpenGL and the OpenGL headers. The makefile uses gcc
 for compilation, but any C99 compliant compiler should work. To install run
@@ -250,7 +250,7 @@ This will install the package headers to /usr/local/include and the library to
 /usr/local/lib. Simply include the `<glb/glb.h>` header and link with `-lglb` to
 use GLB in your project.
 
-##TODO:
+## TODO:
 
 The following is currently incomplete and needs to be finished or added:
 * attach mipmap texture levels to framebuffer
@@ -262,7 +262,7 @@ The following is currently incomplete and needs to be finished or added:
 * uniform array length verification variables
 * handling of large amounts of inputs, outputs and uniforms
 
-##Conclusion: 
+## Conclusion: 
 
 Due to the requirement of backwards compatibility that OpenGL
 maintains, there is a lot of legacy and badly designed functions. Yes, there was
@@ -270,7 +270,7 @@ the deprecation that came with OpenGL 3.0, but that left all remaining functions
 as is. GLB tries to reimagine OpenGL as a cleaner interface, and hopefully it's
 useful to you.
 
-##License:
+## License:
 
 This project is licensed under the MIT Open Source license, which
 means that you can do pretty much whatever you want with this source code. view
